@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.8.11)
+﻿cmake_minimum_required(VERSION 3.8.11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 14)
-PROJECT(Template)
+PROJECT(hesai_lidar)
 
 set(WITH_PTCS_USE ON CACHE BOOL "Use Ptcs")
 # set(FIND_CUDA ON CACHE BOOL "Find CUDA")
