@@ -169,6 +169,10 @@ class OBCameraNode {
 
   void onNewColorFrameCallback();
 
+  void onNewLeftColorFrameCallback();
+
+  void onNewRightColorFrameCallback();
+
   void publishPointCloud(const std::shared_ptr<ob::FrameSet> &frame_set);
 
   void publishDepthPointCloud(const std::shared_ptr<ob::FrameSet> &frame_set);
@@ -254,6 +258,8 @@ class OBCameraNode {
   bool isGemini335PID(uint32_t pid);
 
   bool isGemini435LePID(uint32_t pid);
+
+  bool isPublishMetaData(uint32_t pid);
 
   boost::optional<OBCameraParam> getCameraParam();
 
@@ -374,6 +380,11 @@ class OBCameraNode {
 
   bool getPointCloudDecimationCallback(GetInt32Request &request, GetInt32Response &response);
 
+  void setAEModeCallback(const SetStringRequest &request, SetStringResponse &response);
+
+  void setSportsModeCallback(const std_srvs::SetBoolRequest &request,
+                             std_srvs::SetBoolResponse &response);
+
   // Set ROI
   void setColorAutoExposureROI();
   void setDepthAutoExposureROI();
@@ -484,6 +495,8 @@ class OBCameraNode {
   ros::ServiceServer get_laser_status_srv_;
   ros::ServiceServer set_point_cloud_decimation_srv_;
   ros::ServiceServer get_point_cloud_decimation_srv_;
+  ros::ServiceServer set_ae_mode_srv_;
+  ros::ServiceServer set_sports_mode_srv_;
 
   bool publish_tf_ = true;
   std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_ = nullptr;
@@ -499,6 +512,8 @@ class OBCameraNode {
   std::shared_ptr<camera_info_manager::CameraInfoManager> ir_camera_info_manager_ = nullptr;
   std::vector<std::shared_ptr<ob::Filter>> depth_filter_list_;
   std::vector<std::shared_ptr<ob::Filter>> color_filter_list_;
+  std::vector<std::shared_ptr<ob::Filter>> left_color_filter_list_;
+  std::vector<std::shared_ptr<ob::Filter>> right_color_filter_list_;
   std::vector<std::shared_ptr<ob::Filter>> left_ir_filter_list_;
   std::vector<std::shared_ptr<ob::Filter>> right_ir_filter_list_;
   std::string ir_info_uri_;
@@ -527,6 +542,11 @@ class OBCameraNode {
   int color_backlight_compensation_ = false;
   std::string color_powerline_freq_;
   bool enable_color_decimation_filter_ = false;
+  int color_decimation_filter_scale_ = -1;
+  bool enable_left_color_decimation_filter_ = false;
+  int left_color_decimation_filter_scale_ = -1;
+  bool enable_right_color_decimation_filter_ = false;
+  int right_color_decimation_filter_scale_ = -1;
   // color ae roi
   int color_ae_roi_left_ = -1;
   int color_ae_roi_top_ = -1;
@@ -543,7 +563,6 @@ class OBCameraNode {
   int color_contrast_ = -1;
   int color_hue_ = -1;
   int color_ae_max_exposure_ = -1;
-  int color_decimation_filter_scale_ = -1;
   int color_denoising_level_ = -1;
   bool enable_ir_auto_exposure_ = true;
   bool enable_depth_scale_ = true;
@@ -606,17 +625,34 @@ class OBCameraNode {
 
   // mjpeg decoder
   std::shared_ptr<JPEGDecoder> mjpeg_decoder_ = nullptr;
+  std::shared_ptr<JPEGDecoder> jpeg_decoder_left_ = nullptr;
+  std::shared_ptr<JPEGDecoder> jpeg_decoder_right_ = nullptr;
   uint8_t *rgb_buffer_ = nullptr;
+  uint8_t *rgb_buffer_left_ = nullptr;
+  uint8_t *rgb_buffer_right_ = nullptr;
   std::atomic_bool rgb_is_decoded_{false};
+  std::atomic_bool rgb_left_is_decoded_{false};
+  std::atomic_bool rgb_right_is_decoded_{false};
 
   // For color
   std::queue<std::shared_ptr<ob::FrameSet>> colorFrameQueue_;
   std::shared_ptr<std::thread> colorFrameThread_ = nullptr;
   std::mutex colorFrameMtx_;
   std::condition_variable colorFrameCV_;
+  // For left color
+  std::queue<std::shared_ptr<ob::FrameSet>> leftColorFrameQueue_;
+  std::shared_ptr<std::thread> leftColorFrameThread_ = nullptr;
+  std::mutex leftColorFrameMtx_;
+  std::condition_variable leftColorFrameCV_;
+  // For right color
+  std::queue<std::shared_ptr<ob::FrameSet>> rightColorFrameQueue_;
+  std::shared_ptr<std::thread> rightColorFrameThread_ = nullptr;
+  std::mutex rightColorFrameMtx_;
+  std::condition_variable rightColorFrameCV_;
   // ordered point cloud
   bool ordered_pc_ = false;
-  std::string device_preset_ = "Default";
+  std::string device_preset_ = "";
+  std::string color_preset_ = "";
   // filter switch
   bool enable_decimation_filter_ = false;
   bool enable_hdr_merge_ = false;
@@ -630,6 +666,7 @@ class OBCameraNode {
   bool enable_hole_filling_filter_ = false;
   bool enable_spatial_fast_filter_ = false;
   bool enable_spatial_moderate_filter_ = false;
+  bool enable_false_positive_filter_ = false;
   // filter params
   int decimation_filter_scale_range_ = -1;
   int sequence_id_filter_id_ = -1;
@@ -728,6 +765,12 @@ class OBCameraNode {
   std::unique_ptr<FpsDelayStatus> fps_delay_status_depth_{nullptr};
 
   std::string intra_camera_sync_reference_ = "";
+  std::string ae_mode_;
+  bool enable_sports_mode_ = false;
+
+  int depth_decimation_factor_ = 1;
+  int left_ir_decimation_factor_ = 1;
+  int right_ir_decimation_factor_ = 1;
 };
 
 }  // namespace orbbec_camera

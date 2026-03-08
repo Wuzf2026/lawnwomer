@@ -35,6 +35,20 @@ void OBCameraNode::setupConfig() {
   encoding_[COLOR] = sensor_msgs::image_encodings::RGB8;
   format_str_[COLOR] = "RGB";
 
+  stream_name_[COLOR_LEFT] = "left_color";
+  unit_step_size_[COLOR_LEFT] = 3;
+  format_[COLOR_LEFT] = OB_FORMAT_RGB888;
+  image_format_[COLOR_LEFT] = CV_8UC3;
+  encoding_[COLOR_LEFT] = sensor_msgs::image_encodings::RGB8;
+  format_str_[COLOR_LEFT] = "RGB";
+
+  stream_name_[COLOR_RIGHT] = "right_color";
+  unit_step_size_[COLOR_RIGHT] = 3;
+  format_[COLOR_RIGHT] = OB_FORMAT_RGB888;
+  image_format_[COLOR_RIGHT] = CV_8UC3;
+  encoding_[COLOR_RIGHT] = sensor_msgs::image_encodings::RGB8;
+  format_str_[COLOR_RIGHT] = "RGB";
+
   stream_name_[INFRA0] = "ir";
   unit_step_size_[INFRA0] = sizeof(uint16_t);
   format_[INFRA0] = OB_FORMAT_Y16;
@@ -74,15 +88,39 @@ void OBCameraNode::selectBaseStream() {
     base_stream_ = INFRA2;
   } else if (enable_stream_[COLOR]) {
     base_stream_ = COLOR;
+  } else if (enable_stream_[COLOR_LEFT]) {
+    base_stream_ = COLOR_LEFT;
+  } else if (enable_stream_[COLOR_RIGHT]) {
+    base_stream_ = COLOR_RIGHT;
   } else {
     ROS_ERROR_STREAM("No base stream is enabled!");
   }
 }
 void OBCameraNode::setupColorPostProcessFilter() {
-  auto color_sensor = device_->getSensor(OB_SENSOR_COLOR);
-  color_filter_list_ = color_sensor->createRecommendedFilters();
-  if (color_filter_list_.empty()) {
-    ROS_WARN("Failed to get color sensor filter list");
+  try {
+    auto color_sensor = device_->getSensor(OB_SENSOR_COLOR);
+    if (color_sensor) {
+      color_filter_list_ = color_sensor->createRecommendedFilters();
+    }
+  } catch (const std::exception& e) {
+    ROS_DEBUG_STREAM("Main color sensor not found, trying left/right color sensors");
+    try {
+      auto left_color_sensor = device_->getSensor(OB_SENSOR_COLOR_LEFT);
+      if (left_color_sensor) {
+        left_color_filter_list_ = left_color_sensor->createRecommendedFilters();
+      }
+      auto right_color_sensor = device_->getSensor(OB_SENSOR_COLOR_RIGHT);
+      if (right_color_sensor) {
+        right_color_filter_list_ = right_color_sensor->createRecommendedFilters();
+      }
+    } catch (const std::exception& e) {
+      ROS_DEBUG_STREAM("Left/Right color sensors not found either.");
+    }
+  }
+
+  if (color_filter_list_.empty() && left_color_filter_list_.empty() &&
+      right_color_filter_list_.empty()) {
+    ROS_WARN("Failed to get any color sensor filter list");
     return;
   }
   for (size_t i = 0; i < color_filter_list_.size(); i++) {
@@ -91,7 +129,7 @@ void OBCameraNode::setupColorPostProcessFilter() {
         {"DecimationFilter", enable_color_decimation_filter_},
     };
     std::string filter_name = filter->type();
-    ROS_INFO_STREAM("Setting " << filter_name << "......");
+    ROS_INFO_STREAM("Setting color " << filter_name << "......");
     if (filter_params.find(filter_name) != filter_params.end()) {
       std::string value = filter_params[filter_name] ? "true" : "false";
       ROS_INFO_STREAM("set color " << filter_name << " to " << value);
@@ -113,8 +151,73 @@ void OBCameraNode::setupColorPostProcessFilter() {
       }
     }
   }
+  for (size_t i = 0; i < left_color_filter_list_.size(); i++) {
+    auto filter = left_color_filter_list_[i];
+    std::map<std::string, bool> filter_params = {
+        {"DecimationFilter", enable_left_color_decimation_filter_},
+    };
+    std::string filter_name = filter->type();
+    ROS_INFO_STREAM("Setting left color " << filter_name << "......");
+    if (filter_params.find(filter_name) != filter_params.end()) {
+      std::string value = filter_params[filter_name] ? "true" : "false";
+      ROS_INFO_STREAM("set left color " << filter_name << " to " << value);
+      filter->enable(filter_params[filter_name]);
+    }
+    if (filter_name == "DecimationFilter" && enable_left_color_decimation_filter_) {
+      auto decimation_filter = filter->as<ob::DecimationFilter>();
+      auto range = decimation_filter->getScaleRange();
+      if (left_color_decimation_filter_scale_ != -1 &&
+          left_color_decimation_filter_scale_ <= range.max &&
+          left_color_decimation_filter_scale_ >= range.min) {
+        ROS_INFO_STREAM("Set left color decimation filter scale value to "
+                        << left_color_decimation_filter_scale_);
+        decimation_filter->setScaleValue(left_color_decimation_filter_scale_);
+      }
+      if (left_color_decimation_filter_scale_ != -1 &&
+          (left_color_decimation_filter_scale_ < range.min ||
+           left_color_decimation_filter_scale_ > range.max)) {
+        ROS_ERROR_STREAM("Left Color Decimation filter scale value is out of range "
+                         << range.min << " - " << range.max);
+      }
+    }
+  }
+
+  for (size_t i = 0; i < right_color_filter_list_.size(); i++) {
+    auto filter = right_color_filter_list_[i];
+    std::map<std::string, bool> filter_params = {
+        {"DecimationFilter", enable_right_color_decimation_filter_},
+    };
+    std::string filter_name = filter->type();
+    ROS_INFO_STREAM("Setting right color " << filter_name << "......");
+    if (filter_params.find(filter_name) != filter_params.end()) {
+      std::string value = filter_params[filter_name] ? "true" : "false";
+      ROS_INFO_STREAM("set right color " << filter_name << " to " << value);
+      filter->enable(filter_params[filter_name]);
+    }
+    if (filter_name == "DecimationFilter" && enable_right_color_decimation_filter_) {
+      auto decimation_filter = filter->as<ob::DecimationFilter>();
+      auto range = decimation_filter->getScaleRange();
+      if (right_color_decimation_filter_scale_ != -1 &&
+          right_color_decimation_filter_scale_ <= range.max &&
+          right_color_decimation_filter_scale_ >= range.min) {
+        ROS_INFO_STREAM("Set right color decimation filter scale value to "
+                        << right_color_decimation_filter_scale_);
+        decimation_filter->setScaleValue(right_color_decimation_filter_scale_);
+      }
+      if (right_color_decimation_filter_scale_ != -1 &&
+          (right_color_decimation_filter_scale_ < range.min ||
+           right_color_decimation_filter_scale_ > range.max)) {
+        ROS_ERROR_STREAM("Right Color Decimation filter scale value is out of range "
+                         << range.min << " - " << range.max);
+      }
+    }
+  }
 }
 void OBCameraNode::setupLeftIrPostProcessFilter() {
+  if (device_preset_ == "Dual Color Streams") {
+    ROS_DEBUG_STREAM("Dual Color Streams preset, skip left ir filter setup");
+    return;
+  }
   auto device_info = device_->getDeviceInfo();
   CHECK_NOTNULL(device_info);
   auto pid = device_info->getPid();
@@ -149,6 +252,10 @@ void OBCameraNode::setupLeftIrPostProcessFilter() {
 }
 
 void OBCameraNode::setupRightIrPostProcessFilter() {
+  if (device_preset_ == "Dual Color Streams") {
+    ROS_DEBUG_STREAM("Dual Color Streams preset, skip right ir filter setup");
+    return;
+  }
   auto device_info = device_->getDeviceInfo();
   CHECK_NOTNULL(device_info);
   auto pid = device_info->getPid();
@@ -184,6 +291,10 @@ void OBCameraNode::setupRightIrPostProcessFilter() {
 }
 
 void OBCameraNode::setupDepthPostProcessFilter() {
+  if (device_preset_ == "Dual Color Streams") {
+    ROS_DEBUG_STREAM("Dual Color Streams preset, skip depth filter setup");
+    return;
+  }
   // set depth sensor to filter
   auto depth_sensor = device_->getSensor(OB_SENSOR_DEPTH);
   depth_filter_list_ = depth_sensor->createRecommendedFilters();
@@ -204,6 +315,7 @@ void OBCameraNode::setupDepthPostProcessFilter() {
         {"ThresholdFilter", enable_threshold_filter_},
         {"SpatialFastFilter", enable_spatial_fast_filter_},
         {"SpatialModerateFilter", enable_spatial_moderate_filter_},
+        {"FalsePositiveFilter", enable_false_positive_filter_},
     };
     std::string filter_name = filter->type();
     ROS_INFO_STREAM("Setting " << filter_name << "......");
@@ -298,6 +410,48 @@ void OBCameraNode::setupDepthPostProcessFilter() {
       });
 }
 void OBCameraNode::setupDevices() {
+  if (!device_preset_.empty()) {
+    try {
+      ROS_INFO_STREAM("Available presets:");
+      auto preset_list = device_->getAvailablePresetList();
+      for (uint32_t i = 0; i < preset_list->getCount(); i++) {
+        ROS_INFO_STREAM("Preset " << i << ": " << preset_list->getName(i));
+      }
+      ROS_INFO_STREAM("Load device preset: " << device_preset_);
+      device_->loadPreset(device_preset_.c_str());
+      ROS_INFO_STREAM("Device preset " << device_->getCurrentPresetName() << " loaded");
+    } catch (const ob::Error& e) {
+      ROS_ERROR_STREAM("Failed to load device preset: " << e.getMessage());
+    } catch (const std::exception& e) {
+      ROS_ERROR_STREAM("Failed to load device preset: " << e.what());
+    } catch (...) {
+      ROS_ERROR_STREAM("Failed to load device preset");
+    }
+  }
+  if (!color_preset_.empty() &&
+      device_->isPropertySupported(OB_PROP_COLOR_PRESET_PRIORITY_INT, OB_PERMISSION_WRITE)) {
+    std::string preset_key = color_preset_;
+    std::transform(preset_key.begin(), preset_key.end(), preset_key.begin(), ::tolower);
+    int preset_value = -1;
+    if (preset_key == "default") {
+      preset_value = 0;
+    } else if (preset_key == "warm biased awb") {
+      preset_value = 1;
+    } else {
+      ROS_WARN_STREAM("Unsupported color_preset: "
+                      << color_preset_ << ". Supported values: Default, Warm Biased AWB");
+    }
+    if (preset_value >= 0) {
+      ROS_INFO_STREAM("Setting color preset to " << color_preset_);
+      device_->setIntProperty(OB_PROP_COLOR_PRESET_PRIORITY_INT, preset_value);
+      auto current_value = device_->getIntProperty(OB_PROP_COLOR_PRESET_PRIORITY_INT);
+      if (current_value == 0) {
+        ROS_INFO_STREAM("Color preset set to Default");
+      } else if (current_value == 1) {
+        ROS_INFO_STREAM("Color preset set to Warm Biased AWB");
+      }
+    }
+  }
   if (!preset_resolution_config_.empty()) {
     OBPresetResolutionConfig presetResolutionConfig;
     std::istringstream iss(preset_resolution_config_);
@@ -356,6 +510,10 @@ void OBCameraNode::setupDevices() {
       OBPropertyID rotationPropertyID = OB_PROP_DEPTH_ROTATE_INT;
       if (stream_index == COLOR) {
         rotationPropertyID = OB_PROP_COLOR_ROTATE_INT;
+      } else if (stream_index == COLOR_LEFT) {
+        rotationPropertyID = OB_PROP_COLOR_LEFT_ROTATE_INT;
+      } else if (stream_index == COLOR_RIGHT) {
+        rotationPropertyID = OB_PROP_COLOR_RIGHT_ROTATE_INT;
       } else if (stream_index == DEPTH) {
         rotationPropertyID = OB_PROP_DEPTH_ROTATE_INT;
       } else if (stream_index == INFRA0) {
@@ -375,6 +533,10 @@ void OBCameraNode::setupDevices() {
       OBPropertyID flipPropertyID = OB_PROP_DEPTH_FLIP_BOOL;
       if (stream_index == COLOR) {
         flipPropertyID = OB_PROP_COLOR_FLIP_BOOL;
+      } else if (stream_index == COLOR_LEFT) {
+        flipPropertyID = OB_PROP_COLOR_LEFT_FLIP_BOOL;
+      } else if (stream_index == COLOR_RIGHT) {
+        flipPropertyID = OB_PROP_COLOR_RIGHT_FLIP_BOOL;
       } else if (stream_index == DEPTH) {
         flipPropertyID = OB_PROP_DEPTH_FLIP_BOOL;
       } else if (stream_index == INFRA0) {
@@ -393,6 +555,10 @@ void OBCameraNode::setupDevices() {
       OBPropertyID mirrorPropertyID = OB_PROP_DEPTH_MIRROR_BOOL;
       if (stream_index == COLOR) {
         mirrorPropertyID = OB_PROP_COLOR_MIRROR_BOOL;
+      } else if (stream_index == COLOR_LEFT) {
+        mirrorPropertyID = OB_PROP_COLOR_LEFT_MIRROR_BOOL;
+      } else if (stream_index == COLOR_RIGHT) {
+        mirrorPropertyID = OB_PROP_COLOR_RIGHT_MIRROR_BOOL;
       } else if (stream_index == DEPTH) {
         mirrorPropertyID = OB_PROP_DEPTH_MIRROR_BOOL;
       } else if (stream_index == INFRA0) {
@@ -430,7 +596,8 @@ void OBCameraNode::setupDevices() {
       device_->setBoolProperty(OB_PROP_DEVICE_USB3_REPEAT_IDENTIFY_BOOL,
                                retry_on_usb3_detection_failure_);
     }
-    if (device_->isPropertySupported(OB_PROP_DEPTH_MAX_DIFF_INT, OB_PERMISSION_WRITE)) {
+    if (sensors_.find(DEPTH) != sensors_.end() &&
+        device_->isPropertySupported(OB_PROP_DEPTH_MAX_DIFF_INT, OB_PERMISSION_WRITE)) {
       auto default_noise_removal_filter_min_diff =
           device_->getIntProperty(OB_PROP_DEPTH_MAX_DIFF_INT);
       ROS_INFO_STREAM(
@@ -444,7 +611,8 @@ void OBCameraNode::setupDevices() {
             "after set noise_removal_filter_min_diff: " << new_noise_removal_filter_min_diff);
       }
     }
-    if (device_->isPropertySupported(OB_PROP_DEPTH_MAX_SPECKLE_SIZE_INT, OB_PERMISSION_WRITE)) {
+    if (sensors_.find(DEPTH) != sensors_.end() &&
+        device_->isPropertySupported(OB_PROP_DEPTH_MAX_SPECKLE_SIZE_INT, OB_PERMISSION_WRITE)) {
       auto default_noise_removal_filter_max_size =
           device_->getIntProperty(OB_PROP_DEPTH_MAX_SPECKLE_SIZE_INT);
       ROS_INFO_STREAM(
@@ -458,7 +626,8 @@ void OBCameraNode::setupDevices() {
             "after set noise_removal_filter_max_size: " << new_noise_removal_filter_max_size);
       }
     }
-    if (device_->isPropertySupported(OB_PROP_DEPTH_SOFT_FILTER_BOOL, OB_PERMISSION_READ_WRITE)) {
+    if (sensors_.find(DEPTH) != sensors_.end() &&
+        device_->isPropertySupported(OB_PROP_DEPTH_SOFT_FILTER_BOOL, OB_PERMISSION_READ_WRITE)) {
       device_->setBoolProperty(OB_PROP_DEPTH_SOFT_FILTER_BOOL, enable_noise_removal_filter_);
       ROS_INFO_STREAM("enable_noise_removal_filter:" << enable_noise_removal_filter_);
     }
@@ -509,7 +678,8 @@ void OBCameraNode::setupDevices() {
         device_->isPropertySupported(OB_PROP_COLOR_HDR_BOOL, OB_PERMISSION_READ_WRITE)) {
       device_->setBoolProperty(OB_PROP_COLOR_HDR_BOOL, enable_color_hdr_);
     }
-    if (device_->isPropertySupported(OB_PROP_DISPARITY_TO_DEPTH_BOOL, OB_PERMISSION_READ_WRITE) &&
+    if (sensors_.find(DEPTH) != sensors_.end() &&
+        device_->isPropertySupported(OB_PROP_DISPARITY_TO_DEPTH_BOOL, OB_PERMISSION_READ_WRITE) &&
         device_->isPropertySupported(OB_PROP_SDK_DISPARITY_TO_DEPTH_BOOL,
                                      OB_PERMISSION_READ_WRITE)) {
       if (disparity_to_depth_mode_ == "HW") {
@@ -526,12 +696,6 @@ void OBCameraNode::setupDevices() {
         ROS_INFO_STREAM("Depth process is disable");
       } else {
         ROS_ERROR_STREAM("Depth process is keep default");
-      }
-    }
-    if (!device_preset_.empty()) {
-      ROS_INFO_STREAM("Loading device preset: " << device_preset_);
-      if (isGemini335PID(device_info_->pid())) {
-        device_->loadPreset(device_preset_.c_str());
       }
     }
     if (!sync_mode_str_.empty() &&
@@ -719,7 +883,8 @@ void OBCameraNode::setupDevices() {
     if (device_->isPropertySupported(OB_PROP_DEPTH_AUTO_EXPOSURE_BOOL, OB_PERMISSION_READ_WRITE)) {
       device_->setBoolProperty(OB_PROP_DEPTH_AUTO_EXPOSURE_BOOL, enable_ir_auto_exposure_);
     }
-    if (device_->isPropertySupported(OB_PROP_DEPTH_AUTO_EXPOSURE_PRIORITY_INT,
+    if (sensors_.find(DEPTH) != sensors_.end() &&
+        device_->isPropertySupported(OB_PROP_DEPTH_AUTO_EXPOSURE_PRIORITY_INT,
                                      OB_PERMISSION_WRITE)) {
       int set_enable_depth_auto_exposure_priority = enable_depth_auto_exposure_priority_ ? 1 : 0;
       ROS_INFO_STREAM("Setting depth auto exposure priority to "
@@ -895,6 +1060,16 @@ void OBCameraNode::setupDevices() {
   } catch (const std::exception& e) {
     ROS_ERROR_STREAM("Failed to setup devices: " << e.what());
   }
+  if (device_->isPropertySupported(OB_PROP_DEVICE_AE_STRATEGY_INT, OB_PERMISSION_WRITE)) {
+    device_->setIntProperty(OB_PROP_DEVICE_AE_STRATEGY_INT, enable_sports_mode_);
+    ROS_INFO_STREAM("Setting Sports Mode to " << (enable_sports_mode_ ? "ON" : "OFF"));
+  }
+  if ((ae_mode_ == "depthbased" || ae_mode_ == "colorbased") &&
+      device_->isPropertySupported(OB_PROP_DEVICE_AE_REFERENCE_INT, OB_PERMISSION_WRITE)) {
+    auto ae_mode = ae_mode_ == "depthbased" ? 0 : 1;
+    device_->setIntProperty(OB_PROP_DEVICE_AE_REFERENCE_INT, ae_mode);
+    ROS_INFO_STREAM("Setting AE Mode to " << ae_mode_);
+  }
 }
 
 void OBCameraNode::setupFrameCallback() {
@@ -970,6 +1145,7 @@ void OBCameraNode::printProfiles(const std::shared_ptr<ob::Sensor>& sensor) {
 }
 
 void OBCameraNode::setupProfiles() {
+  auto pid = device_->getDeviceInfo()->getPid();
   for (const auto& stream_index : IMAGE_STREAMS) {
     if (!enable_stream_[stream_index] && stream_index != base_stream_) {
       continue;
@@ -982,8 +1158,32 @@ void OBCameraNode::setupProfiles() {
           format_[stream_index] == OB_FORMAT_UNKNOWN) {
         selected_profile = profile_list->getProfile(0)->as<ob::VideoStreamProfile>();
       } else {
-        selected_profile = profile_list->getVideoStreamProfile(
-            width_[stream_index], height_[stream_index], format_[stream_index], fps_[stream_index]);
+        if (pid == GEMINI_305_PID && stream_index == DEPTH) {
+          OBHardwareDecimationConfig conf;
+          conf.originWidth = width_[stream_index];
+          conf.originHeight = height_[stream_index];
+          conf.factor = depth_decimation_factor_;
+          selected_profile =
+              profile_list->getVideoStreamProfile(conf, format_[stream_index], fps_[stream_index]);
+        } else if (pid == GEMINI_305_PID && stream_index == INFRA1) {
+          OBHardwareDecimationConfig conf;
+          conf.originWidth = width_[stream_index];
+          conf.originHeight = height_[stream_index];
+          conf.factor = left_ir_decimation_factor_;
+          selected_profile =
+              profile_list->getVideoStreamProfile(conf, format_[stream_index], fps_[stream_index]);
+        } else if (pid == GEMINI_305_PID && stream_index == INFRA2) {
+          OBHardwareDecimationConfig conf;
+          conf.originWidth = width_[stream_index];
+          conf.originHeight = height_[stream_index];
+          conf.factor = right_ir_decimation_factor_;
+          selected_profile =
+              profile_list->getVideoStreamProfile(conf, format_[stream_index], fps_[stream_index]);
+        } else {
+          selected_profile =
+              profile_list->getVideoStreamProfile(width_[stream_index], height_[stream_index],
+                                                  format_[stream_index], fps_[stream_index]);
+        }
       }
 
       auto default_profile = profile_list->getProfile(0)->as<ob::VideoStreamProfile>();
@@ -1101,7 +1301,8 @@ void OBCameraNode::updateImageConfig(
       unit_step_size_[stream_index] = sizeof(uint8_t);
     }
   }
-  if (selected_profile->format() == OB_FORMAT_Y16 && stream_index == COLOR) {
+  if (selected_profile->format() == OB_FORMAT_Y16 &&
+      (stream_index == COLOR || stream_index == COLOR_LEFT || stream_index == COLOR_RIGHT)) {
     image_format_[stream_index] = CV_16UC1;
     encoding_[stream_index] = sensor_msgs::image_encodings::MONO16;
     unit_step_size_[stream_index] = sizeof(uint16_t);
@@ -1130,7 +1331,8 @@ void OBCameraNode::setupPublishers() {
     ros::SubscriberStatusCallback image_unsubscribed_cb =
         boost::bind(&OBCameraNode::imageUnsubscribedCallback, this, stream_index);
 
-    // Create wrapper callbacks for image_transport::Publisher (they have different parameter types)
+    // Create wrapper callbacks for image_transport::Publisher (they have different parameter
+    // types)
     image_transport::SubscriberStatusCallback image_transport_subscribed_cb =
         [this, stream_index](const image_transport::SingleSubscriberPublisher&) {
           this->imageSubscribedCallback(stream_index);
@@ -1149,7 +1351,8 @@ void OBCameraNode::setupPublishers() {
     camera_info_publishers_[stream_index] = nh_.advertise<sensor_msgs::CameraInfo>(
         topic_name, 1, image_subscribed_cb, image_unsubscribed_cb);
     CHECK_NOTNULL(device_info_.get());
-    if (isGemini335PID(device_info_->pid()) || isGemini435LePID(device_info_->pid())) {
+    auto pid = device_info_->getPid();
+    if (isPublishMetaData(pid)) {
       metadata_publishers_[stream_index] =
           nh_.advertise<orbbec_camera::Metadata>("/" + camera_name_ + "/" + name + "/metadata", 1,
                                                  image_subscribed_cb, image_unsubscribed_cb);
@@ -1785,6 +1988,10 @@ bool OBCameraNode::setFilterCallback(SetFilterRequest& request, SetFilterRespons
                         << "\nmagnitude:" << params.magnitude << "\nradius:" << params.radius
                         << "\ndisp_diff:" << params.disp_diff);
       }
+    } else if (request.filter_name == "FalsePositiveFilter") {
+      auto false_positive_filter = std::make_shared<ob::FalsePositiveFilter>();
+      false_positive_filter->enable(request.filter_enable);
+      depth_filter_list_.push_back(false_positive_filter);
     } else {
       ROS_INFO_STREAM(request.filter_name
                       << " Cannot be set\n"
@@ -1792,7 +1999,7 @@ bool OBCameraNode::setFilterCallback(SetFilterRequest& request, SetFilterRespons
                          "DecimationFilter, HDRMerge, SequenceIdFilter, ThresholdFilter, "
                          "NoiseRemovalFilter, HardwareNoiseRemoval, "
                          "SpatialAdvancedFilter, TemporalFilter, "
-                         "SpatialFastFilter, SpatialModerateFilter");
+                         "SpatialFastFilter, SpatialModerateFilter, FalsePositiveFilter");
     }
     for (auto& filter : depth_filter_list_) {
       std::cout << " - " << filter->getName() << ": "

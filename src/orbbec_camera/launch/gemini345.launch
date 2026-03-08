@@ -15,6 +15,7 @@
     <!-- The default value of device_preset is `Default`. Only the G330 series is supported. For more information, refer to -->
     <!-- https://www.orbbec.com/docs/g330-use-depth-presets/ -->
     <arg name="device_preset" default="Default"/>
+    <arg name="preset_firmware_path" default=""/>
     <arg name="diagnostics_frequency" default="1.0"/>
     <arg name="sync_mode" default="standalone"/>
     <arg name="disparity_to_depth_mode" default="HW"/><!-- HW, SW, disable -->
@@ -97,6 +98,8 @@
     <arg name="enable_spatial_filter" default="false"/>
     <arg name="enable_temporal_filter" default="false"/>
     <arg name="enable_hole_filling_filter" default="false"/>
+    <arg name="enable_false_positive_filter" default="false"/>
+
     <arg name="sequence_id_filter_id" default="1"/>
     <arg name="threshold_filter_max" default="-1"/>
     <arg name="threshold_filter_min" default="-1"/>
@@ -132,6 +135,7 @@
             <param name="connection_delay" value="$(arg connection_delay)"/>
             <param name="log_level" value="$(arg log_level)"/>
             <param name="log_file_name" value="$(arg log_file_name)"/>
+            <param name="preset_firmware_path" value="$(arg preset_firmware_path)"/>
             <param name="publish_tf" value="$(arg publish_tf)"/>
             <param name="tf_publish_rate" value="$(arg tf_publish_rate)"/>
             <param name="enable_frame_sync" value="$(arg enable_frame_sync)"/>
@@ -195,6 +199,7 @@
             <param name="enable_spatial_filter" value="$(arg enable_spatial_filter)"/>
             <param name="enable_temporal_filter" value="$(arg enable_temporal_filter)"/>
             <param name="enable_hole_filling_filter" value="$(arg enable_hole_filling_filter)"/>
+            <param name="enable_false_positive_filter" value="$(arg enable_false_positive_filter)"/>
             <param name="sequence_id_filter_id" value="$(arg sequence_id_filter_id)"/>
             <param name="threshold_filter_max" value="$(arg threshold_filter_max)"/>
             <param name="threshold_filter_min" value="$(arg threshold_filter_min)"/>

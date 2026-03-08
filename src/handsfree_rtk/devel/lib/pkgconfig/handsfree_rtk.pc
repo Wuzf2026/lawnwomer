@@ -1,0 +1,8 @@
+prefix=/home/norco/handsfree_rtk/devel
+
+Name: handsfree_rtk
+Description: Description of handsfree_rtk
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

@@ -284,6 +284,19 @@ void OBCameraNode::setupCameraCtrlServices() {
         response.success = this->getPointCloudDecimationCallback(request, response);
         return response.success;
       });
+  set_ae_mode_srv_ = nh_.advertiseService<SetString::Request, SetString::Response>(
+      "/" + camera_name_ + "/" + "set_ae_mode",
+      [this](const SetStringRequest& request, SetStringResponse& response) {
+        this->setAEModeCallback(request, response);
+        return true;
+      });
+
+  set_sports_mode_srv_ = nh_.advertiseService<std_srvs::SetBoolRequest, std_srvs::SetBoolResponse>(
+      "/" + camera_name_ + "/" + "set_sports_mode",
+      [this](const std_srvs::SetBoolRequest& request, std_srvs::SetBoolResponse& response) {
+        this->setSportsModeCallback(request, response);
+        return true;
+      });
 }
 
 bool OBCameraNode::setMirrorCallback(std_srvs::SetBoolRequest& request,
@@ -309,6 +322,12 @@ bool OBCameraNode::setMirrorCallback(std_srvs::SetBoolRequest& request,
         break;
       case OB_STREAM_COLOR:
         device_->setBoolProperty(OB_PROP_COLOR_MIRROR_BOOL, request.data);
+        break;
+      case OB_STREAM_COLOR_LEFT:
+        device_->setBoolProperty(OB_PROP_COLOR_LEFT_MIRROR_BOOL, request.data);
+        break;
+      case OB_STREAM_COLOR_RIGHT:
+        device_->setBoolProperty(OB_PROP_COLOR_RIGHT_MIRROR_BOOL, request.data);
         break;
       default:
         ROS_ERROR_STREAM(" NOT a video stream" << __FUNCTION__);
@@ -348,6 +367,12 @@ bool OBCameraNode::setFlipCallback(std_srvs::SetBoolRequest& request,
         break;
       case OB_STREAM_COLOR:
         device_->setBoolProperty(OB_PROP_COLOR_FLIP_BOOL, request.data);
+        break;
+      case OB_STREAM_COLOR_LEFT:
+        device_->setBoolProperty(OB_PROP_COLOR_LEFT_FLIP_BOOL, request.data);
+        break;
+      case OB_STREAM_COLOR_RIGHT:
+        device_->setBoolProperty(OB_PROP_COLOR_RIGHT_FLIP_BOOL, request.data);
         break;
       default:
         ROS_ERROR_STREAM(" NOT a video stream" << __FUNCTION__);
@@ -390,6 +415,14 @@ bool OBCameraNode::setRotationCallback(SetInt32Request& request, SetInt32Respons
         break;
       case OB_STREAM_COLOR:
         device_->setIntProperty(OB_PROP_COLOR_ROTATE_INT, request.data);
+        return true;
+        break;
+      case OB_STREAM_COLOR_LEFT:
+        device_->setIntProperty(OB_PROP_COLOR_LEFT_ROTATE_INT, request.data);
+        return true;
+        break;
+      case OB_STREAM_COLOR_RIGHT:
+        device_->setIntProperty(OB_PROP_COLOR_RIGHT_ROTATE_INT, request.data);
         return true;
         break;
       default:
@@ -493,6 +526,8 @@ bool OBCameraNode::setAeRoiCallback(SetArraysRequest& request, SetArraysResponse
                         << ", Top: " << config.y0_top << ", Bottom: " << config.y1_bottom << " ]");
         break;
       case OB_STREAM_COLOR:
+      case OB_STREAM_COLOR_LEFT:
+      case OB_STREAM_COLOR_RIGHT:
         config.x0_left = (static_cast<short int>(request.data_param[0]) < 0)
                              ? 0
                              : static_cast<short int>(request.data_param[0]);
@@ -1224,6 +1259,42 @@ bool OBCameraNode::getPointCloudDecimationCallback(GetInt32Request& request,
     response.success = false;
     response.message = e.what();
     return false;
+  }
+}
+
+void OBCameraNode::setAEModeCallback(const SetStringRequest& request, SetStringResponse& response) {
+  try {
+    if (device_->isPropertySupported(OB_PROP_DEVICE_AE_REFERENCE_INT, OB_PERMISSION_WRITE) &&
+        (request.data == "depthbased" || request.data == "colorbased")) {
+      device_->setIntProperty(OB_PROP_DEVICE_AE_REFERENCE_INT,
+                              request.data == "depthbased" ? 0 : 1);
+      ae_mode_ = request.data;
+      response.success = true;
+      response.message = "set AE mode success";
+    } else {
+      response.success = false;
+      response.message = "set AE mode failed";
+    }
+  } catch (...) {
+    response.success = false;
+    response.message = "exception occurred";
+  }
+}
+
+void OBCameraNode::setSportsModeCallback(const std_srvs::SetBoolRequest& request,
+                                         std_srvs::SetBoolResponse& response) {
+  try {
+    if (device_->isPropertySupported(OB_PROP_DEVICE_AE_STRATEGY_INT, OB_PERMISSION_WRITE)) {
+      device_->setIntProperty(OB_PROP_DEVICE_AE_STRATEGY_INT, request.data ? 1 : 0);
+      response.success = true;
+      response.message = "set sports mode success";
+    } else {
+      response.success = false;
+      response.message = "set sports mode failed";
+    }
+  } catch (...) {
+    response.success = false;
+    response.message = "exception occurred";
   }
 }
 }  // namespace orbbec_camera

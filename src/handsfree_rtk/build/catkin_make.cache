@@ -1,0 +1,2 @@
+.
+-DCATKIN_DEVEL_PREFIX=/home/norco/handsfree_rtk/devel -DCMAKE_INSTALL_PREFIX=/home/norco/handsfree_rtk/install -G Unix Makefiles
