@@ -31,6 +31,39 @@ lawnwomer_ws/
     ├── cmake/
     │   └── toolchain_rk3588.cmake    # RK3588 交叉编译工具链
     ├── lawnwomer/           # 机器人主控、导航、避障
+        ├── CMakeLists.txt
+        ├── package.xml
+        ├── planner.xml
+        ├── launch/
+        │   ├── lawnwomer.launch
+        │   ├── hardware.launch
+        │   ├── navigation.launch
+        │   └── debug.launch
+        ├── config/
+        │   ├── ekf.yaml
+        │   ├── costmap_common_params.yaml
+        │   ├── local_costmap.yaml
+        │   ├── global_costmap.yaml
+        │   └── planner.yaml
+        ├── rviz/
+        │   └── lawnwomer.rviz
+        └── src/
+            ├── lawnwomer_node.cpp
+            └── planner/lawnwomer_planner.cpp
     ├── hesai_lidar/         # 禾赛激光雷达驱动包
+        ├── CMakeLists.txt
+        ├── package.xml
+        ├── launch/hesai_lidar.launch
+        ├── config/jt128.yaml
+        └── src/hesai_lidar_node.cpp
     ├── orbbec_camera/       # 奥比中光深度相机驱动包
+        ├── CMakeLists.txt
+        ├── package.xml
+        ├── cfg/gemini335.cfg
+        ├── launch/orbbec_camera.launch
+        └── src/orbbec_camera_node.cpp
     └── handsfree_rtk/       # RTK 定位驱动包
+        ├── CMakeLists.txt
+        ├── package.xml
+        ├── launch/handsfree_rtk.launch
+        └── src/handsfree_rtk_node.cpp
