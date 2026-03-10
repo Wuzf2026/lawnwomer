@@ -1,0 +1,6 @@
+<launch>
+  <node pkg="hesai_lidar" type="hesai_lidar_node" name="hesai_lidar_node" output="screen">
+    <param name="device_ip" value="192.168.1.100"/>
+    <param name="frame_id" value="laser_link"/>
+  </node>
+</launch>

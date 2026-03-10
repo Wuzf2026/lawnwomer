@@ -1,0 +1,6 @@
+<launch>
+  <arg name="rviz" default="true"/>
+  <include file="$(find lawnwomer)/launch/hardware.launch"/>
+  <include file="$(find lawnwomer)/launch/navigation.launch"/>
+  <include file="$(find lawnwomer)/launch/debug.launch" if="$(arg rviz)"/>
+</launch>

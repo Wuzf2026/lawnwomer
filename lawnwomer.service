@@ -1,0 +1,15 @@
+[Unit]
+Description=Lawnwomer Autonomous Mower
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/lawnwomer_ws
+ExecStart=/bin/bash -c "source /opt/ros/noetic/setup.bash && source devel/setup.bash && roslaunch lawnwomer lawnwomer.launch rviz:=false"
+Restart=always
+RestartSec=2
+CPUSchedulingPolicy=rr
+CPUSchedulingPriority=90
+
+[Install]
+WantedBy=multi-user.target

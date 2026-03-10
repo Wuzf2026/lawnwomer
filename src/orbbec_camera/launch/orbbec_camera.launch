@@ -1,0 +1,6 @@
+<launch>
+  <node pkg="orbbec_camera" type="orbbec_camera_node" name="orbbec_camera" output="screen">
+    <param name="camera_model" value="Gemini335"/>
+    <param name="jpeg_decoder" value="rk"/>
+  </node>
+</launch>

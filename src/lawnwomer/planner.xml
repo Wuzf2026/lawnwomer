@@ -1,0 +1,5 @@
+<library path="lib/liblawnwomer_planner">
+<class name="lawnwomer/LawnwomerPlanner" type="lawnwomer::LawnwomerPlanner" base_class_type="nav_core::BaseGlobalPlanner">
+<description>Lawnwomer Global Planner</description>
+</class>
+</library>

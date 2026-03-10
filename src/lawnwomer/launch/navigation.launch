@@ -1,0 +1,13 @@
+<launch>
+  <node pkg="robot_localization" type="ekf_localization_node" name="ekf">
+    <rosparam command="load" file="$(find lawnwomer)/config/ekf.yaml"/>
+  </node>
+  <node pkg="amcl" type="amcl" name="amcl"/>
+  <node pkg="move_base" type="move_base" name="move_base" launch-prefix="nice -n -5">
+    <rosparam file="$(find lawnwomer)/config/costmap_common_params.yaml"/>
+    <rosparam file="$(find lawnwomer)/config/local_costmap.yaml"/>
+    <rosparam file="$(find lawnwomer)/config/global_costmap.yaml"/>
+    <rosparam file="$(find lawnwomer)/config/planner.yaml"/>
+  </node>
+  <node pkg="lawnwomer" type="lawnwomer_node" name="robot"/>
+</launch>

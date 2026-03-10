@@ -1,0 +1,20 @@
+<launch>
+  <node pkg="hesai_lidar" type="hesai_lidar_node" name="hesai" output="screen" launch-prefix="nice -n -10">
+    <param name="device_ip" value="192.168.1.100"/>
+    <param name="frame_id" value="laser_link"/>
+  </node>
+
+  <node pkg="orbbec_camera" type="orbbec_camera_node" name="orbbec" output="screen" launch-prefix="nice -n -8">
+    <param name="camera_model" value="Gemini335"/>
+    <param name="jpeg_decoder" value="rk"/>
+  </node>
+
+  <node pkg="handsfree_rtk" type="handsfree_rtk_node" name="rtk">
+    <param name="serial_port" value="/dev/ttyUSB0"/>
+    <param name="baudrate" value="921600"/>
+  </node>
+
+  <node pkg="tf2_ros" type="static_transform_publisher" args="0 0 0.25 0 0 0 base_link laser_link 100"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" args="0 0 0.35 0 0 0 base_link camera_link 100"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" args="0 0 0.1 0 0 0 base_link rtk_link 100"/>
+</launch>

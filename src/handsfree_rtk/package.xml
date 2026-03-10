@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>orbbec_camera</name>
+  <name>handsfree_rtk</name>
   <version>1.0.0</version>
-  <description>Orbbec Gemini335</description>
+  <description>UM982 RTK</description>
   <buildtool_depend>catkin</buildtool_depend>
   <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
-  <depend>image_transport</depend>
-  <depend>camera_info_manager</depend>
+  <depend>nav_msgs</depend>
+  <depend>tf2_ros</depend>
 </package>

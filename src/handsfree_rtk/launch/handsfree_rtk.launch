@@ -1,0 +1,6 @@
+<launch>
+  <node pkg="handsfree_rtk" type="handsfree_rtk_node" name="handsfree_rtk_node" output="screen">
+    <param name="serial_port" value="/dev/ttyUSB0"/>
+    <param name="baudrate" value="921600"/>
+  </node>
+</launch>
