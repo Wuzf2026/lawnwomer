@@ -1,0 +1,56 @@
+cmake_minimum_required(VERSION 3.8.11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 14)
+PROJECT(Template)
+
+# if install different cuda version, set the cuda path, like cuda-11.4
+# set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda-11.4/)
+if(FIND_CUDA)
+    find_package(CUDA )
+endif()
+if(${CUDA_FOUND})
+  	project(CommonModules LANGUAGES CXX CUDA)
+	set(CUDA_SOURCE_PROPERTY_FORMAT OBJ)
+	set(CUDA_SEPARABLE_COMPILATION ON)
+	include_directories(${CUDA_INCLUDE_DIRS})
+	set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+	set(CUDA_NVCC_FLAGS -arch=sm_61;-O3;-G;-g;-std=c++14)#根据具体GPU性能更改算力参数
+	link_directories($ENV{CUDA_PATH}/lib/x64)
+
+  	add_definitions(-DUSE_CUDA)
+else(${CUDA_FOUND})
+	MESSAGE(STATUS "cuda not found!")
+endif(${CUDA_FOUND})
+
+cmake_policy(SET CMP0053 NEW)
+set(CMAKE_BUILD_TYPE ON)
+set(CMAKE_BUILD_TYPE Release)
+add_definitions(-O3)
+add_compile_options(-Wall)
+
+add_definitions(-DQT_MESSAGELOGCONTEXT)
+add_subdirectory(libhesai)
+
+add_library(hesai_sdk_lib
+	driver/hesai_lidar_sdk.cc
+	)
+target_link_libraries(hesai_sdk_lib
+					lidar_lib)
+set_target_properties(hesai_sdk_lib 
+	PROPERTIES CXX_STANDARD_REQUIRED TRUE CXX_STANDARD 14)
+target_include_directories(hesai_sdk_lib PUBLIC   
+	driver
+	./
+) 
+
+if(DISENABLE_TEST_CC)
+
+else()
+	add_executable(sample
+	test/test.cc
+	)
+
+	target_link_libraries(sample
+	hesai_sdk_lib
+	)
+endif()
