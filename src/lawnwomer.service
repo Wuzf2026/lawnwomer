@@ -1,0 +1,13 @@
+[Unit]
+Description=Lawnwomer robot auto startup
+After=network.target
+
+[Service]
+User=rock
+WorkingDirectory=/home/rock/lawnwomer_ws
+ExecStart=/bin/bash -c "source devel/setup.bash && roslaunch lawnwomer all.launch"
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

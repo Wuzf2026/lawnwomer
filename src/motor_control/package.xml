@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>motor_control</name>
+  <version>1.0.0</version>
+  <description>Motor Control Driver for RK3588 (ROS Noetic) with PID</description>
+  <maintainer email="dev@example.com">Motor Developer</maintainer>
+  <license>MIT</license>
+
+  <!-- 构建依赖 -->
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>rk3588_sdk</build_depend>
+  
+  <!-- 运行依赖 -->
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>rk3588_sdk</exec_depend>
+
+  <!-- 导出构建类型 -->
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>

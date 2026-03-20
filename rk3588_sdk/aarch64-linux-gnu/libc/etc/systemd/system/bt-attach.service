@@ -1,7 +1,0 @@
-
-[Unit]
-Description=bluetooth-toggle
-
-[Service]
-Type=forking
-ExecStart=/usr/bin/bt-attach

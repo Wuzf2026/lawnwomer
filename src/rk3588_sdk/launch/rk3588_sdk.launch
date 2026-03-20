@@ -1,0 +1,7 @@
+<launch>
+  <node name="rk3588_sdk_node" pkg="rk3588_sdk" type="rk3588_sdk_node" output="screen">
+    <param name="gpio_pin" value="18" />
+    <param name="uart_dev" value="/dev/ttyS2" />
+    <param name="uart_baud" value="115200" />
+  </node>
+</launch>

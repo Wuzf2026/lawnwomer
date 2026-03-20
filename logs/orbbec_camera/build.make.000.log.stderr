@@ -1,0 +1,10 @@
+/usr/bin/ld: cannot find -lOrbbecSDK
+collect2: error: ld returned 1 exit status
+make[2]: *** [CMakeFiles/orbbec_camera.dir/build.make:342: /home/norco/Desktop/lawnwomer_ws/devel/.private/orbbec_camera/lib/liborbbec_camera.so] Error 1
+make[1]: *** [CMakeFiles/Makefile2:387: CMakeFiles/orbbec_camera.dir/all] Error 2
+make[1]: *** Waiting for unfinished jobs....
+/usr/bin/ld: cannot find -lOrbbecSDK
+collect2: error: ld returned 1 exit status
+make[2]: *** [CMakeFiles/orbbec_camera_nodelet.dir/build.make:357: /home/norco/Desktop/lawnwomer_ws/devel/.private/orbbec_camera/lib/liborbbec_camera_nodelet.so] Error 1
+make[1]: *** [CMakeFiles/Makefile2:360: CMakeFiles/orbbec_camera_nodelet.dir/all] Error 2
+make: *** [Makefile:141: all] Error 2

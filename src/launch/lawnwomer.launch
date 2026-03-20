@@ -1,0 +1,10 @@
+<launch>
+  <node pkg="rk3588_sdk" type="platform_node" name="rk3588_platform" output="screen"/>
+
+  <include file="$(find orbbec_camera)/launch/gemini335.launch"/>
+  <include file="$(find hesai_lidar)/launch/jt128.launch"/>
+  <include file="$(find handsfree_rtk)/launch/um982.launch"/>
+
+  <include file="$(find motor_control)/launch/motor_control.launch"/>
+  <include file="$(find ultrasonic_sensor)/launch/ultrasonic.launch"/>
+</launch>
