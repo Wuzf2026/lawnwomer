@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="ultrasonic_sensor" type="ultrasonic_sensor_node" name="ultrasonic_sensor" output="screen"/>
+</launch>

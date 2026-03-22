@@ -1,2 +1,0 @@
-set(hesai_ros_driver_MESSAGE_FILES "/home/norco/Desktop/lawnwomer_ws/src/hesai_lidar/msg/UdpPacket.msg;/home/norco/Desktop/lawnwomer_ws/src/hesai_lidar/msg/UdpFrame.msg;/home/norco/Desktop/lawnwomer_ws/src/hesai_lidar/msg/LossPacket.msg;/home/norco/Desktop/lawnwomer_ws/src/hesai_lidar/msg/Ptp.msg;/home/norco/Desktop/lawnwomer_ws/src/hesai_lidar/msg/Firetime.msg")
-set(hesai_ros_driver_SERVICE_FILES "")

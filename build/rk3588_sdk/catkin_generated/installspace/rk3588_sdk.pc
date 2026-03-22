@@ -1,8 +1,0 @@
-prefix=/home/norco/Desktop/lawnwomer_ws/devel
-
-Name: rk3588_sdk
-Description: Description of rk3588_sdk
-Version: 1.0.0
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib -lrk3588_sdk
-Requires: roscpp std_msgs
