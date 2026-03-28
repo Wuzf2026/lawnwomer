@@ -1,0 +1,34 @@
+<launch>
+    <!-- 奥比中光Gemini335相机（USB） -->
+    <node name="orbbec_camera_node" pkg="orbbec_camera" type="ob_camera_node" output="screen">
+        <param name="camera/device_type" value="gemini335"/>
+        <param name="camera/usb_port" value="/dev/ttyACM0"/>
+        <param name="camera/frame_id" value="camera_link"/>
+        <rosparam file="$(find lawn_mower)/config/sensor_params.yaml" command="load"/>
+    </node>
+
+    <!-- 禾赛JT128激光雷达（ETH） -->
+    <node name="hesai_lidar_node" pkg="hesai_lidar" type="hesai_lidar_node" output="screen">
+        <param name="lidar/type" value="JT128"/>
+        <param name="lidar/ip" value="192.168.1.200"/>
+        <param name="lidar/port" value="2368"/>
+        <param name="lidar/frame_id" value="lidar_link"/>
+        <rosparam file="$(find lawn_mower)/config/sensor_params.yaml" command="load"/>
+    </node>
+
+    <!-- UM982 RTK（USB） -->
+    <node name="rtk_um982_node" pkg="handsfree_rtk" type="ros_driver_um98x.py" output="screen">
+        <param name="rtk/usb_port" value="/dev/ttyUSB0"/>
+        <param name="rtk/baudrate" value="115200"/>
+        <param name="rtk/frame_id" value="rtk_link"/>
+        <rosparam file="$(find lawn_mower)/config/rtk_params.yaml" command="load"/>
+    </node>
+
+    <!-- 12路超声波雷达（485） -->
+    <node name="ultrasonic_sensor_node" pkg="ultrasonic_sensor" type="ultrasonic_sensor_node" output="screen">
+        <param name="ultrasonic/485_port" value="/dev/ttyS4"/>
+        <param name="ultrasonic/baudrate" value="9600"/>
+        <param name="ultrasonic/num_sensors" value="12"/>
+        <rosparam file="$(find lawn_mower)/config/sensor_params.yaml" command="load"/>
+    </node>
+</launch>

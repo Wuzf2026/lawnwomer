@@ -1,57 +1,62 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.10)
 project(rk3588_sdk)
 
-# 设置编译选项
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -fPIC")
+# 引入RK3588 ARM64工具链
+include(${CMAKE_SOURCE_DIR}/../../rk3588_toolchain.cmake)
 
-# 查找ROS依赖
+# ROS1 Noetic依赖
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  std_msgs
+    roscpp
+    serial
+    std_msgs
 )
 
-# 系统依赖（CAN驱动）
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(SOCKETCAN REQUIRED libsocketcan)
-
-# Catkin包配置（关键：导出头文件和库）
+# 导出库和头文件
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES ${PROJECT_NAME}  # 库名与项目名一致
-  CATKIN_DEPENDS roscpp std_msgs
-  DEPENDS SOCKETCAN
+    INCLUDE_DIRS include
+    LIBRARIES rk3588_sdk
+    CATKIN_DEPENDS roscpp serial std_msgs
+    DEPENDS system_lib
 )
 
-# 包含头文件路径
+# 包含目录（ARM64系统头文件+ROS头文件）
 include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-  ${SOCKETCAN_INCLUDE_DIRS}
+    include
+    ${catkin_INCLUDE_DIRS}
+    /usr/include/aarch64-linux-gnu  # RK3588系统头文件
 )
 
-# 编译共享库（必须指定源码文件）
+# 编译核心驱动（串口+485+GPIO）
 add_library(${PROJECT_NAME}
-  src/can.cpp  # 核心实现文件
+    src/rk3588_serial.cpp
+    src/rk3588_gpio.cpp
+    src/uart_485.c
+    src/gpio_control.cpp
+    src/uart_driver.cpp
 )
 
-# 链接库
+# 链接依赖（ARM64串口/485库）
 target_link_libraries(${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-  ${SOCKETCAN_LIBRARIES}
-  pthread
+    ${catkin_LIBRARIES}
+    ${SERIAL_LIBRARIES}
+    pthread  # 485通信线程依赖
 )
 
-# 安装库文件（关键：确保库被安装到devel/lib）
-install(TARGETS ${PROJECT_NAME}
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# 编译选项（ARM64优化）
+target_compile_options(${PROJECT_NAME} PRIVATE
+    -march=armv8.2-a
+    -O2
+    -Wall
+    -fPIC
 )
 
-# 安装头文件
+# 安装规则
 install(DIRECTORY include/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  FILES_MATCHING PATTERN "*.h"
+    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
+
+install(TARGETS ${PROJECT_NAME}
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

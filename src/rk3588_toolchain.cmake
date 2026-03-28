@@ -1,14 +1,22 @@
+# RK3588 Ubuntu20.04 ARM64 工具链配置（ROS1 Noetic）
 set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR aarch64)
 
-set(TOOLCHAIN_PREFIX /opt/rk3588_toolchain/bin/aarch64-linux-gnu-)
+# 本地编译（RK3588板端Ubuntu20.04）
+set(CMAKE_C_COMPILER /usr/bin/aarch64-linux-gnu-gcc)
+set(CMAKE_CXX_COMPILER /usr/bin/aarch64-linux-gnu-g++)
 
-set(CMAKE_C_COMPILER   ${TOOLCHAIN_PREFIX}gcc)
-set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}g++)
+# 编译选项（适配RK3588，关闭CUDA，优化性能）
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O2 -march=armv8-a -mtune=cortex-a76")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -O2 -march=armv8-a -mtune=cortex-a76")
 
-set(CMAKE_SYSROOT /opt/rk3588_rootfs)
+# ROS1 Noetic 路径配置
+set(ROS_ROOT /opt/ros/noetic)
+set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${ROS_ROOT})
 
-set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
-set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+# 禁用CUDA
+set(CUDA_ENABLED OFF CACHE BOOL "Disable CUDA for RK3588" FORCE)
+
+# 串口库依赖（RK3588串口）
+find_package(serial REQUIRED)
+include_directories(${SERIAL_INCLUDE_DIRS})

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>lawn_mower</name>
+  <version>1.0.0</version>
+  <description>Lawn Mower Robot Integration Package (RK3588 + ROS1 Noetic)</description>
+  <maintainer email="dev@norco.com">Norco Dev</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- 依赖所有子包 -->
+  <depend>rk3588_sdk</depend>
+  <depend>orbbec_camera</depend>
+  <depend>hesai_lidar</depend>
+  <depend>handsfree_rtk</depend>
+  <depend>motor_control</depend>
+  <depend>ultrasonic_sensor</depend>
+
+  <!-- ROS1核心依赖 -->
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>rviz</depend>
+
+  <export>
+    <build_type>catkin</build_type>
+  </export>
+</package>

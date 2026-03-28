@@ -1,12 +1,10 @@
 <launch>
-  <!-- 节点启动 -->
-  <node name="motor_control_node" pkg="motor_control" type="motor_control_node" output="screen" respawn="true">
-    <!-- 串口配置参数 -->
-    <rosparam file="$(find motor_control)/config/serial_config.yaml" command="load"/>
-    <!-- 话题重映射（如需） -->
-    <remap from="/cmd_vel" to="/lawn_mower/cmd_vel"/>
+  <node name="motor_control_node" pkg="motor_control" type="motor_control_node" output="screen">
+    <param name="serial_port" value="$(arg serial_port)" default="/dev/ttyS2"/>
+    <param name="baudrate" value="$(arg baudrate)" default="115200"/>
+    <param name="cutter_vel" value="$(arg cutter_vel)" default="0"/>
   </node>
-  
-  <!-- 可选：启动串口权限设置脚本 -->
-  <exec cmd="chmod 666 /dev/ttyS2" output="screen"/>
+
+  <!-- 串口权限配置（RK3588） -->
+  <exec cmd="chmod 777 /dev/ttyS2" output="screen"/>
 </launch>

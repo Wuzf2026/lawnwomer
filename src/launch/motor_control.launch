@@ -1,0 +1,17 @@
+<launch>
+    <!-- 差速电机控制（Serial+轮速回采） -->
+    <node name="motor_control_node" pkg="motor_control" type="motor_control_node" output="screen">
+        <!-- 串口参数 -->
+        <param name="motor/serial_port" value="/dev/ttyS2"/>
+        <param name="motor/baudrate" value="115200"/>
+        <param name="motor/parity" value="none"/>
+        <!-- 电机参数 -->
+        <param name="motor/pid/kp" value="0.8"/>
+        <param name="motor/pid/ki" value="0.1"/>
+        <param name="motor/pid/kd" value="0.05"/>
+        <param name="motor/max_speed" value="1.0"/>  <!-- m/s -->
+        <!-- 轮速回采 -->
+        <param name="motor/odom/rate" value="50"/>  <!-- Hz -->
+        <rosparam file="$(find lawn_mower)/config/motor_params.yaml" command="load"/>
+    </node>
+</launch>

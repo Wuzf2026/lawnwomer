@@ -1,81 +1,89 @@
-#include "ros/ros.h"
-#include "std_msgs/Float32.h"
-#include "geometry_msgs/Twist.h"
-#include "motor_control/motor_driver.h"
+#include <ros/ros.h>
+#include <geometry_msgs/Twist.h>
+#include <std_msgs/Int16MultiArray.h>
+#include "serial_protocol.h"
+#include "rk3588_serial.h"
 
 using namespace motor_control;
+using namespace rk3588_serial;
 
 class MotorControlNode {
 public:
-    MotorControlNode() {
-        ros::NodeHandle nh_private("~");
-        
-        // 读取参数
-        nh_private.param<std::string>("uart_dev", uart_dev_, "/dev/ttyS3");
-        nh_private.param<int>("uart_baud", uart_baud_, 115200);
-        nh_private.param<float>("kp", kp_, 1.0f);
-        nh_private.param<float>("ki", ki_, 0.1f);
-        nh_private.param<float>("kd", kd_, 0.05f);
+    MotorControlNode() : nh_("~"), serial_port_() {
+        // 读取配置
+        std::string serial_port;
+        int baudrate, cutter_vel;
+        nh_.param<std::string>("serial_port", serial_port, "/dev/ttyS2");
+        nh_.param<int>("baudrate", baudrate, 115200);
+        nh_.param<int>("cutter_vel", cutter_vel, 0);
+        cutter_vel_ = static_cast<uint16_t>(cutter_vel);
 
-        // 初始化电机驱动
-        motor_driver_ = std::make_unique<MotorDriver>(uart_dev_, uart_baud_, kp_, ki_, kd_);
-        if (motor_driver_->init()) {
-            ROS_INFO("Motor driver initialized successfully");
-        } else {
-            ROS_ERROR("Failed to initialize motor driver");
+        // 初始化串口
+        if (!serial_port_.init(serial_port, baudrate)) {
+            ROS_FATAL("Serial port init failed!");
             ros::shutdown();
-            return;
         }
 
-        // 发布/订阅
-        speed_pub_ = nh_.advertise<std_msgs::Float32>("motor_speed", 10);
-        cmd_vel_sub_ = nh_.subscribe("cmd_vel", 10, &MotorControlNode::cmdVelCallback, this);
-        speed_sub_ = nh_.subscribe("set_speed", 10, &MotorControlNode::speedCallback, this);
+        // 订阅/cmd_vel话题
+        cmd_vel_sub_ = nh_.subscribe("/cmd_vel", 10, &MotorControlNode::cmdVelCb, this);
 
-        // 定时器（100Hz更新）
-        timer_ = nh_.createTimer(ros::Duration(0.01), &MotorControlNode::timerCallback, this);
-        last_time_ = ros::Time::now();
+        // 发布轮速话题
+        wheel_speed_pub_ = nh_.advertise<std_msgs::Int16MultiArray>("/wheel_speed", 10);
+
+        // 启动回采线程
+        recv_thread_ = std::thread(&MotorControlNode::recvWheelSpeed, this);
+
+        ROS_INFO("Motor control node init success (RK3588)");
     }
 
-    void cmdVelCallback(const geometry_msgs::Twist::ConstPtr& msg) {
-        // 将线速度转换为电机转速（示例：1m/s = 100rpm）
-        float target_rpm = msg->linear.x * 100.0f;
-        motor_driver_->setSpeed(target_rpm);
+    ~MotorControlNode() {
+        if (recv_thread_.joinable()) {
+            recv_thread_.join();
+        }
+        serial_port_.closePort();
     }
 
-    void speedCallback(const std_msgs::Float32::ConstPtr& msg) {
-        motor_driver_->setSpeed(msg->data);
+    void cmdVelCb(const geometry_msgs::Twist::ConstPtr& twist) {
+        // 打包控制帧并发送
+        auto frame_data = packControlFrame(twist, cutter_vel_);
+        if (serial_port_.sendData(frame_data)) {
+            ROS_DEBUG("Send control frame: linear=%.2f m/s, angular=%.2f rad/s",
+                      twist->linear.x, twist->angular.z);
+        } else {
+            ROS_ERROR("Failed to send control frame");
+        }
     }
 
-    void timerCallback(const ros::TimerEvent& e) {
-        ros::Time now = ros::Time::now();
-        float dt = (now - last_time_).toSec();
-        last_time_ = now;
-
-        // 更新电机控制
-        motor_driver_->update(dt);
-
-        // 发布当前转速
-        std_msgs::Float32 speed_msg;
-        speed_msg.data = motor_driver_->getCurrentSpeed();
-        speed_pub_.publish(speed_msg);
+    void recvWheelSpeed() {
+        ros::Rate rate(100); // 100Hz回采
+        while (ros::ok()) {
+            std::vector<uint8_t> recv_data;
+            // 读取9字节轮速帧
+            if (serial_port_.recvData(recv_data, 9, 10)) {
+                WheelSpeedFrame frame;
+                if (unpackWheelSpeedFrame(recv_data, frame)) {
+                    // 发布轮速话题（left, right）
+                    std_msgs::Int16MultiArray wheel_speed_msg;
+                    wheel_speed_msg.data.push_back(frame.left_wheel_vel);
+                    wheel_speed_msg.data.push_back(frame.right_wheel_vel);
+                    wheel_speed_pub_.publish(wheel_speed_msg);
+                    ROS_DEBUG("Recv wheel speed: left=%d cm/s, right=%d cm/s",
+                              frame.left_wheel_vel, frame.right_wheel_vel);
+                } else {
+                    ROS_WARN("Invalid wheel speed frame");
+                }
+            }
+            rate.sleep();
+        }
     }
 
 private:
     ros::NodeHandle nh_;
-    std::unique_ptr<MotorDriver> motor_driver_;
-    ros::Publisher speed_pub_;
+    SerialPort serial_port_;
     ros::Subscriber cmd_vel_sub_;
-    ros::Subscriber speed_sub_;
-    ros::Timer timer_;
-    ros::Time last_time_;
-
-    // 参数
-    std::string uart_dev_;
-    int uart_baud_;
-    float kp_;
-    float ki_;
-    float kd_;
+    ros::Publisher wheel_speed_pub_;
+    std::thread recv_thread_;
+    uint16_t cutter_vel_;
 };
 
 int main(int argc, char** argv) {

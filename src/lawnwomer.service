@@ -1,13 +1,16 @@
 [Unit]
-Description=Lawnwomer robot auto startup
+Description=Lawnwomer ROS Node Service (RK3588)
 After=network.target
 
 [Service]
-User=rock
-WorkingDirectory=/home/rock/lawnwomer_ws
-ExecStart=/bin/bash -c "source devel/setup.bash && roslaunch lawnwomer all.launch"
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/home/ubuntu/lawnwomer
+ExecStart=/opt/ros/noetic/bin/roslaunch lawnwomer start_all.launch
 Restart=on-failure
-RestartSec=3
+RestartSec=5s
+KillMode=process
 
 [Install]
 WantedBy=multi-user.target

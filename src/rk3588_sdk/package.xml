@@ -1,12 +1,31 @@
-serial:
-  port: "/dev/ttyS2"    # RK3588串口（根据实际硬件调整）
-  baudrate: 115200
-  parity: "none"
-  stopbits: 1
-  bytesize: 8
-  timeout: 100          # 串口超时时间（ms）
+<?xml version="1.0" encoding="UTF-8"?>
+<package format="2">
+  <name>rk3588_sdk</name>
+  <version>1.0.0</version>
+  <description>RK3588 SDK驱动包，适配ROS1 Noetic，为割草机器人提供串口/485/GPIO硬件底层支持</description>
+  <maintainer email="norco@norco.com">norco</maintainer>
+  <license>Apache-2.0</license>
 
-motor:
-  max_linear_speed: 0.5 # 最大线速度（m/s）
-  max_angular_speed: 1.0 # 最大角速度（rad/s）
-  max_cutter_speed: 2000.0 # 刀盘最大转速（rpm）
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <!-- ROS1核心依赖 -->
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>std_msgs</depend>
+  <depend>serial</depend>
+
+  <!-- ARM64硬件依赖 -->
+  <build_depend>libusb-1.0-dev</build_depend>
+  <build_depend>libudev-dev</build_depend>
+  <build_depend>libboost-all-dev</build_depend>
+  <build_depend>libpthread-stubs0-dev</build_depend>
+
+  <exec_depend>libusb-1.0-0</exec_depend>
+  <exec_depend>libudev1</exec_depend>
+  <exec_depend>libboost-all-dev</exec_depend>
+
+  <export>
+    <catkin_libraries>rk3588_hardware</catkin_libraries>
+    <include_directories>include</include_directories>
+  </export>
+</package>

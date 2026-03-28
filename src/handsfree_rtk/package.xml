@@ -1,25 +1,30 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>handsfree_rtk</name>
-  <version>0.0.0</version>
-  <description>The handsfree_rtk package</description>
-  <maintainer email="handsfree@todo.todo">handsfree</maintainer>
-  <license>TODO</license>
+  <version>1.0.0</version>
+  <description>Handsfree UM982 RTK package for RK3588 (ROS1 Noetic)</description>
+  <maintainer email="handsfree@norco.com">handsfree</maintainer>
+  <license>Apache-2.0</license>
+
   <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- ROS1依赖 -->
   <build_depend>geometry_msgs</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>sensor_msgs</build_depend>
-  <build_export_depend>geometry_msgs</build_export_depend>
-  <build_export_depend>roscpp</build_export_depend>
-  <build_export_depend>rospy</build_export_depend>
-  <build_export_depend>sensor_msgs</build_export_depend>
+  <build_depend>rk3588_sdk</build_depend>
+
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>rk3588_sdk</exec_depend>
+
+  <!-- USB串口依赖 -->
+  <build_depend>libusb-1.0-dev</build_depend>
+  <exec_depend>libusb-1.0-0</exec_depend>
 
   <export>
-
   </export>
 </package>

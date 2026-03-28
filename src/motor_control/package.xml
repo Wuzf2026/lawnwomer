@@ -2,23 +2,23 @@
 <package format="2">
   <name>motor_control</name>
   <version>1.0.0</version>
-  <description>Motor control package for lawn mower (differential drive + cutter motor)</description>
-  <maintainer email="dev@example.com">RK3588 Dev</maintainer>
+  <description>Motor Control for RK3588 (Serial Protocol)</description>
+  <maintainer email="ubuntu@rk3588.local">RK3588</maintainer>
   <license>MIT</license>
+
   <buildtool_depend>catkin</buildtool_depend>
-  
   <build_depend>roscpp</build_depend>
-  <build_depend>std_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
-  <build_depend>rosparam</build_depend>
-  <build_depend>yaml_cpp</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>serial</build_depend>
+  <build_depend>rk3588_sdk</build_depend>
   
   <exec_depend>roscpp</exec_depend>
-  <exec_depend>std_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>rosparam</exec_depend>
-  <exec_depend>yaml_cpp</exec_depend>
-  
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>serial</exec_depend>
+  <exec_depend>rk3588_sdk</exec_depend>
+
   <export>
     <build_type>cmake</build_type>
   </export>

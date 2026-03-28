@@ -1,234 +1,85 @@
-cmake_minimum_required(VERSION 3.5)
-cmake_policy(SET CMP0048 NEW)
-project(hesai_ros_driver)
+cmake_minimum_required(VERSION 3.10)project(hesai_lidar)# 引入RK3588工具链（禁用CUDA，RK3588不兼容）include(${CMAKE_SOURCE_DIR}/../../rk3588_toolchain.cmake)set(FIND_CUDA OFF)  # 强制禁用CUDA# ROS1 Noetic依赖find_package(catkin REQUIRED COMPONENTS    roscpp    std_msgs    sensor_msgs    message_generation    rk3588_sdk)# 生成ROS消息（仅ROS1）add_message_files(    FILES    Firetime.msg    LossPacket.msg    Ptp.msg    UdpPacket.msg    UdpFrame.msg)generate_messages(    DEPENDENCIES    std_msgs    sensor_msgs)# 导出配置catkin_package(    INCLUDE_DIRS src/driver src/utility    LIBRARIES hesai_lidar_lib    CATKIN_DEPENDS roscpp std_msgs sensor_msgs message_runtime rk3588_sdk)# 包含目录（ARM64适配）include_directories(    ${catkin_INCLUDE_DIRS}    src/utility    src/manager    src/driver    src/driver/HesaiLidar_SDK_2.0    src/driver/HesaiLidar_SDK_2.0/libhesai    ${CMAKE_SOURCE_DIR}/../rk3588_sdk/include)# 编译SDK核心库（JT128适配）add_subdirectory(src/driver/HesaiLidar_SDK_2.0)# 编译禾赛雷达节点add_executable(hesai_lidar_node    src/driver/hesai_driver.cpp    src/manager/lidar_manager.cpp    src/utility/lidar_utils.cpp)# 链接依赖（ARM64 + 禁用CUDA）target_link_libraries(hesai_lidar_node    ${catkin_LIBRARIES}    rk3588_sdk    hesai_sdk_lib    lidar_lib    pthread)# 编译选项（ARM64优化）target_compile_options(hesai_lidar_node PRIVATE    -march=armv8.2-a    -O2    -Wall    -std=c++14)# 安装规则install(TARGETS hesai_lidar_node    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})install(DIRECTORY config launch rviz    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})cmake_minimum_required(VERSION 3.10)project(hesai_lidar)# 引入RK3588工具链（禁用CUDA，RK3588不兼容）include(${CMAKE_SOURCE_DIR}/../../rk3588_toolchain.cmake)set(FIND_CUDA OFF)  # 强制禁用CUDA# ROS1 Noetic依赖find_package(catkin REQUIRED COMPONENTS    roscpp    std_msgs    sensor_msgs    message_generation    rk3588_sdk)# 生成ROS消息（仅ROS1）add_message_files(    FILES    Firetime.msg    LossPacket.msg    Ptp.msg    UdpPacket.msg    UdpFrame.msg)generate_messages(    DEPENDENCIES    std_msgs    sensor_msgs)# 导出配置catkin_package(    INCLUDE_DIRS src/driver src/utility    LIBRARIES hesai_lidar_lib    CATKIN_DEPENDS roscpp std_msgs sensor_msgs message_runtime rk3588_sdk)# 包含目录（ARM64适配）include_directories(    ${catkin_INCLUDE_DIRS}    src/utility    src/manager    src/driver    src/driver/HesaiLidar_SDK_2.0    src/driver/HesaiLidar_SDK_2.0/libhesai    ${CMAKE_SOURCE_DIR}/../rk3588_sdk/include)# 编译SDK核心库（JT128适配）add_subdirectory(src/driver/HesaiLidar_SDK_2.0)# 编译禾赛雷达节点add_executable(hesai_lidar_node    src/driver/hesai_driver.cpp    src/manager/lidar_manager.cpp    src/utility/lidar_utils.cpp)# 链接依赖（ARM64 + 禁用CUDA）target_link_libraries(hesai_lidar_node    ${catkin_LIBRARIES}    rk3588_sdk    hesai_sdk_lib    lidar_lib    pthread)# 编译选项（ARM64优化）target_compile_options(hesai_lidar_node PRIVATE    -march=armv8.2-a    -O2    -Wall    -std=c++14)# 安装规则install(TARGETS hesai_lidar_node    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})install(DIRECTORY config launch rviz    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}cmake_minimum_required(VERSION 3.10)
+project(hesai_lidar)
 
-#=======================================
-# Version information
-#=======================================
-set(VERSION_MAJOR 2)
-set(VERSION_MINOR 2)
-set(VERSION_TINY  2)
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/Version.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/Version.h"
+# 引入RK3588工具链（禁用CUDA，RK3588不兼容）
+include(${CMAKE_SOURCE_DIR}/../../rk3588_toolchain.cmake)
+set(FIND_CUDA OFF)  # 强制禁用CUDA
+
+# ROS1 Noetic依赖
+find_package(catkin REQUIRED COMPONENTS
+    roscpp
+    std_msgs
+    sensor_msgs
+    message_generation
+    rk3588_sdk
 )
 
-# set(FIND_CUDA ON CACHE BOOL "FIND_CUDA")
-if(FIND_CUDA)
-    find_package(CUDA )
-endif()
-if(${CUDA_FOUND})
-  	project(CommonModules LANGUAGES CXX CUDA)
-	set(CUDA_SOURCE_PROPERTY_FORMAT OBJ)
-	set(CUDA_SEPARABLE_COMPILATION ON)
-	include_directories(${CUDA_INCLUDE_DIRS})
-	set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-	set(CUDA_NVCC_FLAGS -arch=sm_61;-O3;-G;-g;-std=c++14)#根据具体GPU性能更改算力参数
-	link_directories($ENV{CUDA_PATH}/lib/x64)
-
-  	add_definitions(-DUSE_CUDA)
-else(${CUDA_FOUND})
-	MESSAGE(STATUS "cuda not found!")
-endif(${CUDA_FOUND})
-
-#=======================================
-# Custom Point Type (XYZI, XYZIRT)
-#=======================================
-set(POINT_TYPE XYZI)
-
-#=======================================
-# Compile setup (ORIGINAL, CATKIN, COLCON)
-#=======================================
-message(=============================================================)
-message("-- ROS_VERSION is $ENV{ROS_VERSION}")
-message(=============================================================)
-
-
-#========================
-# Project details / setup
-#========================
-set(PROJECT_NAME hesai_ros_driver)
-
-add_definitions(-DPROJECT_PATH="${PROJECT_SOURCE_DIR}")
-
-if (CMAKE_BUILD_TYPE STREQUAL "")
-  set(CMAKE_BUILD_TYPE Release)
-  add_definitions(-O3)
-endif()
-
-if($ENV{ROS_DISTRO} STREQUAL "humble")  # the ros2 humble requires c++17
-add_definitions(-std=c++17)
-else()
-add_definitions(-std=c++14)
-endif()
-
-add_compile_options(-Wall)
-
-#========================
-# Dependencies Setup
-#========================
-
-#ROS#
-#Catkin#
-if($ENV{ROS_VERSION} MATCHES "1")
-  find_package(roscpp 1.12 QUIET)
-  find_package(roslib QUIET)
-  include_directories(${roscpp_INCLUDE_DIRS} ${roslib_INCLUDE_DIRS})
-  set(ROS_LIBS ${roscpp_LIBRARIES} ${roslib_LIBRARIES})
-  add_definitions(-DROS_FOUND)
-  add_definitions(-DRUN_IN_ROS_WORKSPACE)
-
-  find_package(catkin REQUIRED COMPONENTS
-    roscpp
-    sensor_msgs
-    std_msgs
-    message_generation
-    roslib)
-
-  add_message_files(
+# 生成ROS消息（仅ROS1）
+add_message_files(
     FILES
-    "UdpPacket.msg"
-    "UdpFrame.msg"
-    "LossPacket.msg"
-    "Ptp.msg"
-    "Firetime.msg"
-  )
+    Firetime.msg
+    LossPacket.msg
+    Ptp.msg
+    UdpPacket.msg
+    UdpFrame.msg
+)
 
-  generate_messages(
+generate_messages(
     DEPENDENCIES
     std_msgs
-  )
+    sensor_msgs
+)
 
+# 导出配置
+catkin_package(
+    INCLUDE_DIRS src/driver src/utility
+    LIBRARIES hesai_lidar_lib
+    CATKIN_DEPENDS roscpp std_msgs sensor_msgs message_runtime rk3588_sdk
+)
 
-  catkin_package(CATKIN_DEPENDS 
-    sensor_msgs 
-    roslib)
+# 包含目录（ARM64适配）
+include_directories(
+    ${catkin_INCLUDE_DIRS}
+    src/utility
+    src/manager
+    src/driver
+    src/driver/HesaiLidar_SDK_2.0
+    src/driver/HesaiLidar_SDK_2.0/libhesai
+    ${CMAKE_SOURCE_DIR}/../rk3588_sdk/include
+)
 
-endif($ENV{ROS_VERSION} MATCHES "1")
-
-#ROS2#
-if($ENV{ROS_VERSION} MATCHES "2")
-
-  find_package(rclcpp QUIET)
-  if(rclcpp_FOUND)
-
-    message(=============================================================)
-    message("-- ROS2 Found. ROS2 Support is turned On.")
-    message(=============================================================)
-
-    add_definitions(-DROS2_FOUND)
-    include_directories(${rclcpp_INCLUDE_DIRS})
-    set(CMAKE_CXX_STANDARD 14)
-
-    find_package(ament_cmake REQUIRED)
-    find_package(sensor_msgs REQUIRED)
-    find_package(std_msgs REQUIRED)  
-    find_package(rclcpp_action REQUIRED)
-    find_package(rosidl_typesupport_c REQUIRED) 
-    find_package(rosidl_default_generators REQUIRED)
-    find_package(builtin_interfaces REQUIRED)
-    find_package(std_msgs REQUIRED)
-    
-    rosidl_generate_interfaces(${PROJECT_NAME}
-      "msg/msg_ros2/UdpPacket.msg"
-      "msg/msg_ros2/UdpFrame.msg"
-      "msg/msg_ros2/Firetime.msg"
-      "msg/msg_ros2/Ptp.msg"
-      "msg/msg_ros2/LossPacket.msg"
-      DEPENDENCIES builtin_interfaces std_msgs
-    )
-    ament_export_dependencies(rosidl_default_runtime)                 
-    
-  else(rclcpp_FOUND)
-
-    message(=============================================================)
-    message("-- ROS2 Not Found. ROS2 Support is turned Off.")
-    message(=============================================================)
-
-  endif(rclcpp_FOUND )
-endif($ENV{ROS_VERSION} MATCHES "2")
-
-
-#Others#
-find_package(yaml-cpp REQUIRED)
-
-#Include directory#
-include_directories(${PROJECT_SOURCE_DIR}/src)
-
-#Driver core#
-set(DISENABLE_TEST_CC ON CACHE BOOL "DISENABLE_TEST_CC")  
+# 编译SDK核心库（JT128适配）
 add_subdirectory(src/driver/HesaiLidar_SDK_2.0)
 
-#========================
-# Build Setup
-#========================
+# 编译禾赛雷达节点
+add_executable(hesai_lidar_node
+    src/driver/hesai_driver.cpp
+    src/manager/lidar_manager.cpp
+    src/utility/lidar_utils.cpp
+)
 
-find_package(Boost REQUIRED COMPONENTS thread)
-include_directories(${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
+# 链接依赖（ARM64 + 禁用CUDA）
+target_link_libraries(hesai_lidar_node
+    ${catkin_LIBRARIES}
+    rk3588_sdk
+    hesai_sdk_lib
+    lidar_lib
+    pthread
+)
 
-if(${CUDA_FOUND})
-  add_executable(hesai_ros_driver_node
-    node/hesai_ros_driver_node.cu
-    src/manager/node_manager.cc
-    )
-else()
-  add_executable(hesai_ros_driver_node
-    node/hesai_ros_driver_node.cc
-    src/manager/node_manager.cc
-    )
-endif()
-target_link_libraries(hesai_ros_driver_node                   
-            ${YAML_CPP_LIBRARIES}
-            ${Boost_LIBRARIES}
-            hesai_sdk_lib
-)            
+# 编译选项（ARM64优化）
+target_compile_options(hesai_lidar_node PRIVATE
+    -march=armv8.2-a
+    -O2
+    -Wall
+    -std=c++14
+)
 
-target_include_directories(hesai_ros_driver_node PRIVATE
-  src/manager
-  src/msg/ros_msg
-  src/msg/rs_msg
-  src/utility
-  ${CMAKE_CURRENT_BINARY_DIR}
-)  
+# 安装规则
+install(TARGETS hesai_lidar_node
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
-#Ros#
-if($ENV{ROS_VERSION} MATCHES "1")
-  target_link_libraries(hesai_ros_driver_node  ${ROS_LIBS})
-  install(TARGETS hesai_ros_driver_node
-          RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-          LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-          ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
-endif($ENV{ROS_VERSION} MATCHES "1")
-
-
-#Ros2#
-
-if($ENV{ROS_VERSION} MATCHES "2")
-  find_package(ament_index_cpp REQUIRED)
-  ament_target_dependencies(hesai_ros_driver_node 
-  "ament_index_cpp"
-  "rcl_interfaces"
-  "rclcpp" 
-  "rcutils"
-  "std_msgs" 
-  "sensor_msgs" 
-  # "tf2_geometry_msgs"
-  )
-  rosidl_target_interfaces(hesai_ros_driver_node  ${PROJECT_NAME} "rosidl_typesupport_cpp")
-
-  install(TARGETS
-    hesai_ros_driver_node
-    DESTINATION lib/${PROJECT_NAME})
-
-  install(DIRECTORY
-    launch
-    rviz
-    DESTINATION share/${PROJECT_NAME})
-    
-
-  ament_package()
-
-endif($ENV{ROS_VERSION} MATCHES "2")
-
-
+install(DIRECTORY config launch rviz
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
