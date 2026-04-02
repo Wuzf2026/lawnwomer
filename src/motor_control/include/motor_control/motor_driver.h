@@ -1,32 +1,32 @@
-#ifndef MOTOR_CONTROL_MOTOR_DRIVER_H
-#define MOTOR_CONTROL_MOTOR_DRIVER_H
+#ifndef MOTOR_DRIVER_H
+#define MOTOR_DRIVER_H
 
-#include "rk3588_sdk/uart_driver.h"
-#include "motor_control/pid_controller.h"
-
-namespace motor_control {
+#include <ros/ros.h>
+#include <geometry_msgs/Twist.h>
+#include "serial_port.h"
+#include "serial_protocol.h"
+#include "motor_control/WheelSpeed.h"
 
 class MotorDriver {
 public:
-    MotorDriver(const std::string& uart_dev, int baudrate, float kp, float ki, float kd);
-    ~MotorDriver() = default;
-
+    MotorDriver(ros::NodeHandle& nh);
+    ~MotorDriver();
     bool init();
-    void setSpeed(float target_rpm);
-    float getCurrentSpeed();
-    void update(float dt);
+    void run();
 
 private:
-    rk3588_sdk::UARTDriver uart_;
-    PIDController pid_;
-    float target_rpm_;
-    float current_rpm_;
+    void cmdVelCB(const geometry_msgs::Twist::ConstPtr& msg);
+    void readSerial();
 
-    // 串口通信协议解析/封装
-    bool sendMotorCmd(float rpm);
-    bool readMotorStatus();
+    ros::Subscriber sub_cmd_;
+    ros::Publisher pub_wheel_;
+    SerialPort serial_;
+    SerialProtocol proto_;
+
+    std::string port_;
+    int baud_;
+    float wheel_base_;
+    float wheel_radius_;
 };
 
-} // namespace motor_control
-
-#endif // MOTOR_CONTROL_MOTOR_DRIVER_H
+#endif

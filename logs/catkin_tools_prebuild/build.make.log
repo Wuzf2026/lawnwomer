@@ -1,7 +1,0 @@
-/usr/bin/cmake -S/home/norco/Desktop/lawnwomer_ws/build/catkin_tools_prebuild -B/home/norco/Desktop/lawnwomer_ws/build/catkin_tools_prebuild --check-build-system CMakeFiles/Makefile.cmake 0
-/usr/bin/cmake -E cmake_progress_start /home/norco/Desktop/lawnwomer_ws/build/catkin_tools_prebuild/CMakeFiles /home/norco/Desktop/lawnwomer_ws/build/catkin_tools_prebuild/CMakeFiles/progress.marks
-/usr/bin/make -f CMakeFiles/Makefile2 all
-make[1]: Entering directory '/home/norco/Desktop/lawnwomer_ws/build/catkin_tools_prebuild'
-make[1]: Nothing to be done for 'all'.
-make[1]: Leaving directory '/home/norco/Desktop/lawnwomer_ws/build/catkin_tools_prebuild'
-/usr/bin/cmake -E cmake_progress_start /home/norco/Desktop/lawnwomer_ws/build/catkin_tools_prebuild/CMakeFiles 0

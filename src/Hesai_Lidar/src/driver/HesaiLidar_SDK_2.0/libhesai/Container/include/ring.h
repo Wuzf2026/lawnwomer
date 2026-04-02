@@ -1,16 +1,17 @@
-#ifndef ___HESAI__CONTAINER__RING_HH___
-#define ___HESAI__CONTAINER__RING_HH___
+#ifndef ___HESAI__CONTAINER__RING_SDK_HH___
+#define ___HESAI__CONTAINER__RING_SDK_HH___
 
 #include <memory>
 #include <array>
 #include <cassert>
 #include <iterator>
+#include <algorithm>
 namespace hesai
 {
 namespace lidar
 {
 template <typename T, size_t N>
-class Ring {
+class Ring_SDK {
 public:
     static constexpr size_t Size = N;
     template <typename Item> class ItemIterator;
@@ -20,7 +21,7 @@ private:
     std::unique_ptr<std::array<T, N>> _ring;
     size_t _begin, _size;
 public:
-    Ring();
+    Ring_SDK();
     inline constexpr size_t size() const;
     inline bool empty() const;
     inline bool not_empty() const;
@@ -50,12 +51,6 @@ public:
     inline const T& operator[](size_t index) const;
     inline T* data();
     inline const T* data() const;
-    inline T* get_back_ptr();
-    inline T* get_front_ptr();
-    inline T* get_back_next_ptr();
-    inline T* get_front_next_ptr();
-    inline void push_back_ptr();
-    inline void push_front_ptr();
 };
 }  // namespace lidar
 }  // namespace hesai

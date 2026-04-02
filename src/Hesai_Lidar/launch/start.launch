@@ -1,12 +1,6 @@
 <launch>
-  <node name="hesai_lidar_node" pkg="hesai_lidar" type="hesai_lidar_node" output="screen">
-    <param name="lidar_type" value="$(arg lidar_type)" default="PandarXT"/>
-    <param name="udp_port" value="$(arg udp_port)" default="2368"/>
-    <param name="frame_id" value="$(arg frame_id)" default="hesai_lidar"/>
-    <param name="scan_topic" value="$(arg scan_topic)" default="/hesai_points"/>
-    <param name="ip_address" value="$(arg ip_address)" default="192.168.1.100"/>
+  <node pkg="hesai_ros_driver" name="hesai_ros_driver_node" type="hesai_ros_driver_node" output="screen">
   </node>
-
-  <!-- RVIZ可视化 -->
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find hesai_lidar)/rviz/rviz.rviz" output="screen"/>
+  <!-- rviz -->
+  <node pkg="rviz" name="rviz" type="rviz" args="-d '$(find hesai_ros_driver)/rviz/rviz.rviz'" required="true"/>
 </launch>

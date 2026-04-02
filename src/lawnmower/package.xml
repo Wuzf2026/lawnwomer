@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>lawnmower</name>
+  <version>0.0.0</version>
+  <description>割草机器人核心功能包</description>
+  <maintainer email="dev@example.com">Developer</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>image_transport</build_depend>
+  <build_depend>msg</build_depend>
+  <build_depend>srv</build_depend>
+  <build_depend>yaml-cpp</build_depend>
+  <build_depend>serial</build_depend>
+  <build_depend>socketcan_interface</build_depend>
+  <build_depend>libusb-1.0-dev</build_depend>
+  <build_depend>libhttpserver-dev</build_depend>
+  <build_depend>libopencv-dev</build_depend>
+
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>image_transport</exec_depend>
+  <exec_depend>msg</exec_depend>
+  <exec_depend>srv</exec_depend>
+  <exec_depend>yaml-cpp</exec_depend>
+  <exec_depend>serial</exec_depend>
+  <exec_depend>socketcan_interface</exec_depend>
+  <exec_depend>libusb-1.0-0</exec_depend>
+  <exec_depend>libhttpserver0</exec_depend>
+  <exec_depend>libopencv-core4.2</exec_depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>

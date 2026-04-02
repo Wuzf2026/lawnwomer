@@ -1,10 +1,6 @@
 <launch>
-  <node name="motor_control_node" pkg="motor_control" type="motor_control_node" output="screen">
-    <param name="serial_port" value="$(arg serial_port)" default="/dev/ttyS2"/>
-    <param name="baudrate" value="$(arg baudrate)" default="115200"/>
-    <param name="cutter_vel" value="$(arg cutter_vel)" default="0"/>
+  <node name="motor_control" pkg="motor_control" type="motor_node" output="screen">
+    <param name="port" value="/dev/ttyS4" />
+    <param name="baud" value="9600" />
   </node>
-
-  <!-- 串口权限配置（RK3588） -->
-  <exec cmd="chmod 777 /dev/ttyS2" output="screen"/>
 </launch>

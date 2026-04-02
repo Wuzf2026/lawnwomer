@@ -1,0 +1,7 @@
+# 传感器校准指令
+string sensor_type  # 传感器类型：orbbec/hesai/um982
+string calib_type   # 校准类型：intrinsic(内参)/extrinsic(外参)/rtk_base(基站校准)
+---
+bool success        # 校准是否成功
+float64 calib_error # 校准误差（可选）
+string message      # 校准结果提示

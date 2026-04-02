@@ -62,11 +62,10 @@ namespace hesai
 {
 namespace lidar
 {
-#define SOMEIP_PORT 30490
 
 class SocketSource : public Source{
  public:
-  SocketSource(const uint16_t port = kUdpPort, const std::string& multicastIp = "");
+  SocketSource(const uint16_t port = kUdpPort, const std::string& localIp = "", const std::string& multicastIp = "");
   virtual ~SocketSource();
 
   virtual bool Open();
@@ -86,6 +85,7 @@ private:
   std::string multicast_ip_;
   std::string client_ip_;
   sockaddr_in send_addr_;
+  std::string localIp_;
 };
 }  // namespace lidar
 }  // namespace hesai

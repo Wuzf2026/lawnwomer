@@ -6,7 +6,12 @@
 #include<cfloat>
 
 //#define SAVE_LAS_FILE
-#define SAVE_LAZ_FILE             
+#define SAVE_LAZ_FILE     
+
+#define LIDAR_PARSER_TEST
+// #define SERIAL_PARSER_TEST
+// #define PCAP_PARSER_TEST
+// #define EXTERNAL_INPUT_PARSER_TEST
 
 std::mutex mex_viewer;
 uint32_t last_frame_time;
@@ -18,12 +23,11 @@ void lidarCallback(const LidarDecodedFrame<LidarPointXYZIRT>  &frame) {
     printf("Time between last frame and cur frame is: %u us\n", (cur_frame_time - last_frame_time));
   }
   last_frame_time = cur_frame_time;
-  printf("frame:%d points:%u packet:%u start time:%lf end time:%lf\n",frame.frame_index, frame.points_num, frame.packet_num, frame.points[0].timestamp, frame.points[frame.points_num - 1].timestamp) ;
-
+  printf("frame:%d points:%u packet:%u start time:%lf end time:%lf\n",frame.frame_index, frame.points_num, frame.packet_num, frame.frame_start_timestamp, frame.frame_end_timestamp);
   mex_viewer.lock();
   LASwriteOpener laswriteropener;
-std::string file_name1 = "./PointCloudFrame" + std::to_string(frame.frame_index) + "_" + std::to_string(frame.points[0].timestamp)+ ".las";
-std::string file_name2 = "./PointCloudFrame" + std::to_string(frame.frame_index) + "_" + std::to_string(frame.points[0].timestamp)+ ".laz";
+std::string file_name1 = "./PointCloudFrame" + std::to_string(frame.frame_index) + "_" + std::to_string(frame.frame_start_timestamp)+ ".las";
+std::string file_name2 = "./PointCloudFrame" + std::to_string(frame.frame_index) + "_" + std::to_string(frame.frame_start_timestamp)+ ".laz";
 
 #ifdef SAVE_LAS_FILE
 const char* las_name = file_name1.c_str();
@@ -112,16 +116,45 @@ int main(int argc, char *argv[])
   HesaiLidarSdk<LidarPointXYZIRT> sample;
   DriverParam param;
   // assign param
-  param.use_gpu = false;
+  param.use_gpu = (argc > 1);
+#ifdef LIDAR_PARSER_TEST
   param.input_param.source_type = DATA_FROM_LIDAR;
-  param.input_param.device_ip_address = "192.168.1.201";
-  param.input_param.udp_port = 2368;
-  param.input_param.ptc_port = 9347;
+  param.input_param.device_ip_address = "192.168.1.201";  // lidar ip
+  param.input_param.ptc_port = 9347; // lidar ptc port
+  param.input_param.udp_port = 2368; // point cloud destination port
+  param.input_param.multicast_ip_address = "";
+
+  param.input_param.use_ptc_connected = true;  // true: use PTC connected, false: recv correction from local file
+  param.input_param.correction_file_path = "Your correction file path";
+  param.input_param.firetimes_path = "Your firetime file path";
+
+  param.input_param.host_ip_address = ""; // point cloud destination ip, local ip
+  param.input_param.fault_message_port = 9348; // fault message destination port
+
+#elif defined (SERIAL_PARSER_TEST)
+  param.input_param.source_type = DATA_FROM_SERIAL;
+  param.input_param.rs485_com = "Your serial port name for receiving point cloud";
+  param.input_param.rs232_com = "Your serial port name for sending cmd";
+  param.input_param.point_cloud_baudrate = 3125000;
+  param.input_param.correction_file_path = "Your correction file path";
+
+#elif defined PCAP_PARSER_TEST
+  param.input_param.source_type = DATA_FROM_PCAP;
   param.input_param.pcap_path = "Your pcap file path";
   param.input_param.correction_file_path = "Your correction file path";
   param.input_param.firetimes_path = "Your firetime file path";
 
-  param.decoder_param.distance_correction_flag = false;
+
+  param.decoder_param.pcap_play_synchronization = true;
+  param.decoder_param.pcap_play_in_loop = false; // pcap palyback
+
+#elif defined (EXTERNAL_INPUT_PARSER_TEST)
+  param.input_param.source_type = DATA_FROM_ROS_PACKET;
+  param.input_param.correction_file_path = "Your correction file path";
+  param.input_param.firetimes_path = "Your firetime file path";
+#endif
+
+  param.decoder_param.enable_packet_loss_tool = false;
   param.decoder_param.socket_buffer_size = 262144000;
   //init lidar with param
   sample.Init(param);
@@ -132,10 +165,6 @@ int main(int argc, char *argv[])
   //star process thread
   last_frame_time = GetMicroTickCount();
   sample.Start();
-  if (sample.lidar_ptr_->init_finish_[FailInit]) {
-    sample.Stop();
-    return -1;
-  }
 
   while (1)
   {

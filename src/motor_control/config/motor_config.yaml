@@ -1,4 +1,0 @@
-# 电机控制配置（RK3588）
-serial_port: "/dev/ttyS2"  # RK3588串口设备
-baudrate: 115200           # 波特率
-cutter_vel: 0              # 刀盘默认速度（rpm）

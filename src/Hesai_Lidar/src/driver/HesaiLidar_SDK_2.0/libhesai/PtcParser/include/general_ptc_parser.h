@@ -31,7 +31,7 @@
 #define GENERAL_PTC_PARSER_H_
 #include <iostream>
 #include <fstream>
-#include "lidar_types.h"
+#include "inner_com.h"
 #include "client_base.h"
 
 namespace hesai

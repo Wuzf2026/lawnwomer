@@ -1,62 +1,34 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.0.2)
 project(rk3588_sdk)
 
-# 引入RK3588 ARM64工具链
-include(${CMAKE_SOURCE_DIR}/../../rk3588_toolchain.cmake)
+add_compile_options(-std=c++11)
 
-# ROS1 Noetic依赖
 find_package(catkin REQUIRED COMPONENTS
-    roscpp
-    serial
-    std_msgs
+  roscpp
+  rospy
 )
 
-# 导出库和头文件
 catkin_package(
-    INCLUDE_DIRS include
-    LIBRARIES rk3588_sdk
-    CATKIN_DEPENDS roscpp serial std_msgs
-    DEPENDS system_lib
+  INCLUDE_DIRS include
+  LIBRARIES ${PROJECT_NAME}
+  CATKIN_DEPENDS roscpp rospy
 )
 
-# 包含目录（ARM64系统头文件+ROS头文件）
 include_directories(
-    include
-    ${catkin_INCLUDE_DIRS}
-    /usr/include/aarch64-linux-gnu  # RK3588系统头文件
+  include
+  ${catkin_INCLUDE_DIRS}
 )
 
-# 编译核心驱动（串口+485+GPIO）
-add_library(${PROJECT_NAME}
-    src/rk3588_serial.cpp
-    src/rk3588_gpio.cpp
-    src/uart_485.c
-    src/gpio_control.cpp
-    src/uart_driver.cpp
-)
-
-# 链接依赖（ARM64串口/485库）
-target_link_libraries(${PROJECT_NAME}
-    ${catkin_LIBRARIES}
-    ${SERIAL_LIBRARIES}
-    pthread  # 485通信线程依赖
-)
-
-# 编译选项（ARM64优化）
-target_compile_options(${PROJECT_NAME} PRIVATE
-    -march=armv8.2-a
-    -O2
-    -Wall
-    -fPIC
-)
-
-# 安装规则
-install(DIRECTORY include/
-    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-)
+file(GLOB_RECURSE PROJECT_SOURCES src/*.cpp src/*.c)
+add_library(${PROJECT_NAME} ${PROJECT_SOURCES})
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
 install(TARGETS ${PROJECT_NAME}
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )

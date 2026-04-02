@@ -1,7 +1,0 @@
-<launch>
-  <node name="ultrasonic_sensor_node" pkg="ultrasonic_sensor" type="ultrasonic_sensor_node" output="screen">
-    <param name="trig_pin" value="23" />
-    <param name="echo_pin" value="24" />
-    <param name="frequency" value="10.0" />
-  </node>
-</launch>

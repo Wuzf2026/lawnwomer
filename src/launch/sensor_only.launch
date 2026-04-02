@@ -1,0 +1,9 @@
+<launch>
+  <param name="orbbec_config_path" value="$(find config)/config/orbbec_config.yaml" />
+  <param name="hesai_config_path" value="$(find config)/config/hesai_config.yaml" />
+  <param name="um982_config_path" value="$(find config)/config/um982_config.yaml" />
+
+  <node name="orbbec_driver" pkg="lawnmower" type="lawnmower_node" output="screen" args="orbbec_only" />
+  <node name="hesai_driver" pkg="lawnmower" type="lawnmower_node" output="screen" args="hesai_only" />
+  <node name="um982_driver" pkg="lawnmower" type="lawnmower_node" output="screen" args="um982_only" />
+</launch>

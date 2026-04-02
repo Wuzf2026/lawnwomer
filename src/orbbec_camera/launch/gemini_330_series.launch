@@ -9,7 +9,7 @@
     <arg name="log_file_name" default=""/>
     <arg name="publish_tf" default="true"/>
     <arg name="tf_publish_rate" default="0.0"/>
-    <arg name="enable_frame_sync" default="true"/>
+    <arg name="enable_frame_sync" default="false"/>
     <arg name="time_domain" default="global"/><!-- "device", "global", "system" -->
     <arg name="uvc_backend" default="libuvc"/><!-- "libuvc" or "v4l2" -->
     <arg name="enable_sync_host_time" default="true"/>
@@ -135,7 +135,7 @@
     <arg name="enable_ir_long_exposure" default="false"/>
 
     <!-- Point cloud parameters -->
-    <arg name="enable_point_cloud" default="true"/>
+    <arg name="enable_point_cloud" default="false"/>
     <arg name="enable_colored_point_cloud" default="false"/>
     <arg name="point_cloud_decimation_filter_factor" default="1"/>
     <arg name="ordered_pc" default="false"/>
@@ -247,7 +247,7 @@
 
     <group ns="$(arg camera_name)">
         <node name="camera" pkg="orbbec_camera" type="orbbec_camera_node" output="screen">
-            <param name="device_type" value="$(arg device_type)"/>
+            <param name="device_type" value="usb"/>
             <!-- Use the parameters defined above -->
             <param name="camera_name" value="$(arg camera_name)"/>
             <param name="connection_delay" value="$(arg connection_delay)"/>
@@ -264,7 +264,7 @@
             <param name="diagnostics_frequency" value="$(arg diagnostics_frequency)"/>
             <param name="align_mode" value="$(arg align_mode)"/>
             <param name="align_target_stream" value="$(arg align_target_stream)"/>
-            <param name="enable_laser" value="$(arg enable_laser)"/>
+            <param name="enable_laser" value="false"/>
             <param name="depth_precision" value="$(arg depth_precision)"/>
             <param name="sync_mode" value="$(arg sync_mode)"/>
             <param name="disparity_to_depth_mode" value="$(arg disparity_to_depth_mode)"/>
@@ -460,7 +460,7 @@
             <param name="laser_index0_ir_brightness" value="$(arg laser_index0_ir_brightness)"/>
             <param name="laser_index0_ir_ae_max_exposure" value="$(arg laser_index0_ir_ae_max_exposure)"/>
 
-            <param name="force_ip_enable" value="$(arg force_ip_enable)"/>
+            <param name="force_ip_enable" value="false"/>
             <param name="force_ip_mac" value="$(arg force_ip_mac)"/>
             <param name="force_ip_address" value="$(arg force_ip_address)"/>
             <param name="force_ip_subnet_mask" value="$(arg force_ip_subnet_mask)"/>

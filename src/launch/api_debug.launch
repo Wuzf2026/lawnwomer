@@ -1,0 +1,5 @@
+<launch>
+  <param name="api_config_path" value="$(find config)/config/api_config.yaml" />
+  <node name="api_server" pkg="lawnmower" type="lawnmower_node" output="screen" args="api_only" />
+  <node name="python_debugger" pkg="tools" type="sensor_debugger.py" output="screen" />
+</launch>

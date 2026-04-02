@@ -32,8 +32,8 @@
 #endif
 #include <iostream>
 #include <fstream>
+#include "inner_com.h"
 #include "general_ptc_parser.h"
-#include "lidar_types.h"
 
 #pragma pack(push, 1)
 
