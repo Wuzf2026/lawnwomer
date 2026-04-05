@@ -1,6 +1,0 @@
-# 获取传感器运行状态
-string sensor_type  # 传感器类型：orbbec/hesai/um982
----
-bool is_connected   # 传感器是否正常连接
-string status_detail # 详细状态信息
-float64 last_update # 最后数据更新时间戳

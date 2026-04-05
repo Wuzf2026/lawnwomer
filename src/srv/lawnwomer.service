@@ -1,0 +1,41 @@
+[Unit]
+Description=Lawnmower Robot System Service
+After=network.target ros.target
+Requires=ros.target
+[Service]
+Type=simple
+User=root
+Environment="ROS_HOME=/home/lawnwomer/.ros"
+Environment="ROS_MASTER_URI=http://localhost:11311"
+Environment="ROSCONSOLE_FORMAT=[${severity}] ${message}"
+# 启动命令（注意路径需要根据实际安装位置调整）
+ExecStart=/bin/bash -c "source /home/lawnwomer/lawnwomer_ws/devel/setup.bash && roslaunch lawnmower_bringup lawnmower.launch"
+# 重启策略
+Restart=always
+RestartSec=5
+# 标准输出重定向
+StandardOutput=journal
+StandardError=journal
+[Install]
+WantedBy=multi-user.target
+服务管理脚本：
+
+#!/bin/bash
+# lawnwomer_service.sh
+# 安装服务文件
+sudo cp src/lawnmower_bringup/scripts/lawnwomer.service /etc/systemd/system/
+sudo systemctl daemon-reload
+# 启用服务（开机自启动）
+sudo systemctl enable lawnwomer.service
+# 启动服务
+sudo systemctl start lawnwomer.service
+# 检查服务状态
+sudo systemctl status lawnwomer.service
+# 常见命令
+echo "Systemd service management commands:"
+echo "  sudo systemctl start lawnwomer.service    - 启动服务"
+echo "  sudo systemctl stop lawnwomer.service     - 停止服务"
+echo "  sudo systemctl restart lawnwomer.service  - 重启服务"
+echo "  sudo systemctl status lawnwomer.service   - 查看状态"
+echo "  sudo systemctl enable lawnwomer.service   - 开机自启动"
+echo "  sudo systemctl disable lawnwomer.service  - 禁用开机自启动"

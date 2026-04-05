@@ -1,8 +1,0 @@
-um982_rtk:
-  usb_port: "/dev/ttyUSB1"    # RK3588 USB端口
-  baudrate: 115200            # 通信波特率
-  rtk_mode: "rtcm3"           # RTK数据协议
-  base_station_ip: "192.168.2.10" # 基站IP
-  base_station_port: 8080     # 基站通信端口
-  update_rate: 10             # 定位数据更新频率(Hz)
-  topic_name: "/lawnmower/um982/rtk_data" # 数据发布话题名

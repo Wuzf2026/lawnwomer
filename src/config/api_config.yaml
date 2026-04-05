@@ -1,5 +1,0 @@
-api_server:
-  server_port: 8088           # HTTP API服务端口（可选）
-  debug_mode: true            # 调试模式开关
-  log_level: "INFO"           # 日志级别：DEBUG/INFO/WARN/ERROR
-  param_update_topic: "/lawnmower/api/param_update" # 参数更新通知话题

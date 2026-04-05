@@ -1,9 +1,0 @@
-<launch>
-  <param name="orbbec_config_path" value="$(find config)/config/orbbec_config.yaml" />
-  <param name="hesai_config_path" value="$(find config)/config/hesai_config.yaml" />
-  <param name="um982_config_path" value="$(find config)/config/um982_config.yaml" />
-  <param name="api_config_path" value="$(find config)/config/api_config.yaml" />
-
-  <node name="lawnmower_core_node" pkg="lawnmower" type="lawnmower_node" output="screen" />
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find launch)/config/lawnmower.rviz" />
-</launch>

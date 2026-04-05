@@ -1,7 +1,0 @@
-# 设置传感器参数
-string sensor_type  # 传感器类型：orbbec/hesai/um982
-string param_key    # 参数名称
-string param_value  # 参数值
----
-bool success        # 操作是否成功
-string message      # 执行结果提示

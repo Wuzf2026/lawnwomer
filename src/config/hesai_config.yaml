@@ -1,8 +1,0 @@
-hesai_jt128:
-  eth_ip: "192.168.1.200"     # 雷达设备IP
-  host_ip: "192.168.1.100"    # RK3588主机ETH IP
-  port: 9347                  # 通信端口
-  scan_frequency: 10          # 扫描频率(Hz)
-  return_mode: "dual"         # 回波模式：single(单回波)/dual(双回波)
-  filter_distance: 0.5        # 最小测距过滤阈值(m)
-  topic_name: "/lawnmower/hesai/lidar_data" # 数据发布话题名
