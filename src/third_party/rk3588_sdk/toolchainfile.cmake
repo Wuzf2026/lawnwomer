@@ -1,13 +1,15 @@
 set(CMAKE_SYSTEM_NAME Linux)
-set(CMAKE_SYSTEM_PROCESSOR aarch64)
-
-set(CMAKE_C_COMPILER "${CMAKE_CURRENT_LIST_DIR}/bin/aarch64-linux-gnu-gcc")
-set(CMAKE_CXX_COMPILER "${CMAKE_CURRENT_LIST_DIR}/bin/aarch64-linux-gnu-g++")
-
-set(CMAKE_SYSROOT "${CMAKE_CURRENT_LIST_DIR}/aarch64-linux-gnu/libc")
-set(CMAKE_FIND_ROOT_PATH "${CMAKE_CURRENT_LIST_DIR}/aarch64-linux-gnu/libc")
-
+set(CMAKE_SYSTEM_PROCESSOR arm)
+# 设置交叉编译工具路径
+set(CMAKE_C_COMPILER   ${CMAKE_CURRENT_SOURCE_DIR}/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc)
+set(CMAKE_CXX_COMPILER ${CMAKE_CURRENT_SOURCE_DIR}/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-g++)
+# 设置sysroot
+set(CMAKE_FIND_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/sysroot)
+# 设置搜索策略
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+# 设置C++标准
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
