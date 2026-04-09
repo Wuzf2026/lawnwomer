@@ -1,25 +1,17 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>motor_control</name>
-  <version>1.0.0</version>
-  <description>Motor control package for lawn mower (differential drive + cutter motor)</description>
-  <maintainer email="dev@example.com">RK3588 Dev</maintainer>
+  <version>0.0.0</version>
+  <description>Motor control node</description>
+  <maintainer email="support@example.com">Your Company</maintainer>
   <license>MIT</license>
   <buildtool_depend>catkin</buildtool_depend>
-  
   <build_depend>roscpp</build_depend>
-  <build_depend>std_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
-  <build_depend>rosparam</build_depend>
-  <build_depend>yaml_cpp</build_depend>
-  
-  <exec_depend>roscpp</exec_depend>
-  <exec_depend>std_msgs</exec_depend>
-  <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>rosparam</exec_depend>
-  <exec_depend>yaml_cpp</exec_depend>
-  
-  <export>
-    <build_type>cmake</build_type>
-  </export>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>rk3588_sdk</build_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>rk3588_sdk</run_depend>
 </package>

@@ -1,12 +1,13 @@
-serial:
-  port: "/dev/ttyS2"    # RK3588串口（根据实际硬件调整）
-  baudrate: 115200
-  parity: "none"
-  stopbits: 1
-  bytesize: 8
-  timeout: 100          # 串口超时时间（ms）
-
-motor:
-  max_linear_speed: 0.5 # 最大线速度（m/s）
-  max_angular_speed: 1.0 # 最大角速度（rad/s）
-  max_cutter_speed: 2000.0 # 刀盘最大转速（rpm）
+<?xml version="1.0"?>
+<package format="2">
+  <name>rk3588_sdk</name>
+  <version>0.0.0</version>
+  <description>RK3588 platform SDK</description>
+  <maintainer email="support@example.com">Your Company</maintainer>
+  <license>MIT</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>serial</build_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>serial</run_depend>
+</package>
