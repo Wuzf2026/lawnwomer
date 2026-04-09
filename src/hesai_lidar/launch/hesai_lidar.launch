@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="device_ip" default="192.168.1.200"/>
+    <arg name="udp_port" default="2368"/>
+    <arg name="ptc_port" default="9347"/>
+    <arg name="correction_file" default=""/>
+    <arg name="firetimes_file" default=""/>
+    <arg name="use_gpu" default="false"/>
+    
+    <node name="hesai_lidar_node" pkg="hesai_lidar" type="hesai_lidar_node" output="screen">
+        <param name="device_ip" value="$(arg device_ip)"/>
+        <param name="udp_port" value="$(arg udp_port)"/>
+        <param name="ptc_port" value="$(arg ptc_port)"/>
+        <param name="correction_file" value="$(arg correction_file)"/>
+        <param name="firetimes_file" value="$(arg firetimes_file)"/>
+        <param name="use_gpu" value="$(arg use_gpu)"/>
+    </node>
+</launch>

@@ -1,6 +1,0 @@
-<launch>
-  <node name="motor_control" pkg="motor_control" type="motor_node" output="screen">
-    <param name="port" value="/dev/ttyS4" />
-    <param name="baud" value="9600" />
-  </node>
-</launch>
