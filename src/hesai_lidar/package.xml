@@ -1,25 +1,41 @@
 <?xml version="1.0"?>
-<package format="2">
-  <name>hesai_lidar</name>
-  <version>0.1.0</version>
-  <description>Hesai JT128 LiDAR Driver</description>
-  <maintainer email="your_email@example.com">Your Name</maintainer>
-  <license>Apache License 2.0</license>
+<package  format="3">
+  <name>hesai_ros_driver</name>
+  <version>1.5.0</version>
+  <description>The hesai_ros_driver_node package</description>
+  <maintainer email="zhangyu@hesaitech.com">hesaiwuxiaozhou</maintainer>
+  <license>BSD</license>
   
-  <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>rospy</build_depend>
+  <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
+  <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
+  <buildtool_depend condition="$ROS_VERSION == 2">rosidl_default_generators</buildtool_depend>
+
+  <build_depend condition="$ROS_VERSION == 1">roscpp</build_depend>
+  <build_depend condition="$ROS_VERSION == 2">rclcpp</build_depend>
+  
   <build_depend>sensor_msgs</build_depend>
-  <build_depend>tf2_ros</build_depend>
-  <build_depend>diagnostic_msgs</build_depend>
-  <build_depend>dynamic_reconfigure</build_depend>
-  <build_depend>libboost_all-dev</build_depend>
-  <build_depend>libyaml-cpp-dev</build_depend>
+  <build_depend>roslib</build_depend>
+  <build_depend>std_msgs</build_depend>
   
-  <run_depend>roscpp</run_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>tf2_ros</run_depend>
-  <run_depend>diagnostic_msgs</run_depend>
-  <run_depend>dynamic_reconfigure</run_depend>
+  <exec_depend condition="$ROS_VERSION == 2">rclcpp</exec_depend>
+  <exec_depend condition="$ROS_VERSION == 2">sensor_msgs</exec_depend>
+  <exec_depend condition="$ROS_VERSION == 2">std_msgs</exec_depend>
+  <depend condition="$ROS_VERSION == 2">ament_index_cpp</depend>
+  <depend condition="$ROS_VERSION == 2">rclcpp_action</depend>
+
+  <exec_depend condition="$ROS_VERSION == 1">roscpp</exec_depend>
+  <exec_depend condition="$ROS_VERSION == 1">sensor_msgs</exec_depend>
+  <exec_depend condition="$ROS_VERSION == 1">roslib</exec_depend>
+  
+  <member_of_group>rosidl_interface_packages</member_of_group>
+  
+  <export>
+    <build_type condition="$ROS_VERSION == 1">catkin</build_type>
+    <build_type condition="$ROS_VERSION == 2">ament_cmake</build_type>
+  </export>
+  
 </package>
+
+
+
+

@@ -1,0 +1,12 @@
+# RS485串口参数
+rs485:
+  port: "/dev/ttyUSB0"    # RK3588 USB转485端口（板载串口可改为/dev/ttyS2）
+  baudrate: 115200
+  databits: 8
+  stopbits: 1
+  parity: "N"
+
+# 电机参数
+motor:
+  wheel_base: 30.0        # 轮距(cm)，根据实际硬件调整
+  default_cutter_speed: 150 # 默认刀盘转速(rpm)

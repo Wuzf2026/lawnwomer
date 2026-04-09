@@ -1,0 +1,12 @@
+<launch>
+  <!-- 节点启动 -->
+  <node name="motor_control_node" pkg="motor_control" type="motor_control_node" output="screen" respawn="true">
+    <!-- 串口配置参数 -->
+    <rosparam file="$(find motor_control)/config/serial_config.yaml" command="load"/>
+    <!-- 话题重映射（如需） -->
+    <remap from="/cmd_vel" to="/lawn_mower/cmd_vel"/>
+  </node>
+  
+  <!-- 可选：启动串口权限设置脚本 -->
+  <exec cmd="chmod 666 /dev/ttyS2" output="screen"/>
+</launch>
