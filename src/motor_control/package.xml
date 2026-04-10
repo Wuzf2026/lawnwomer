@@ -2,16 +2,22 @@
 <package format="2">
   <name>motor_control</name>
   <version>0.0.0</version>
-  <description>Motor control node</description>
-  <maintainer email="support@example.com">Your Company</maintainer>
+  <description>Motor control package with serial and custom msg</description>
+
+  <maintainer email="norco@test.com">norco</maintainer>
   <license>MIT</license>
+
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>geometry_msgs</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>rk3588_sdk</build_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>rk3588_sdk</run_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>serial</build_depend>
+  <build_depend>message_generation</build_depend>
+
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>serial</exec_depend>
+  <exec_depend>message_runtime</exec_depend>
+
 </package>
