@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>lawnmower_base</name>
+  <version>0.0.0</version>
+  <description>lawnmower base</description>
+  <maintainer email="norco@todo.todo">norco</maintainer>
+  <license>MIT</license>
+  <buildtool_depend>catkin</buildtool_depend>
+</package>

@@ -1,0 +1,20 @@
+<launch>
+  <!-- 节点命名空间 -->
+  <arg name="ns" default="lawnmower" />
+  
+  <!-- 配置文件路径 -->
+  <arg name="config_path" default="$(find lawnmower_base)/config/lawnmower_config.yaml" />
+
+  <!-- 启动base节点 -->
+  <node name="lawnmower_base_node" pkg="lawnmower_base" type="lawnmower_base_node" output="screen">
+    <param name="serial_port" value="$(yaml $(arg config_path) serial_port)" />
+    <param name="serial_baudrate" value="$(yaml $(arg config_path) serial_baudrate)" />
+    <param name="frame_id/base" value="$(yaml $(arg config_path) frame_id.base)" />
+    <param name="frame_id/lidar" value="$(yaml $(arg config_path) frame_id.lidar)" />
+    <param name="frame_id/imu" value="$(yaml $(arg config_path) frame_id.imu)" />
+    <param name="frame_id/gps" value="$(yaml $(arg config_path) frame_id.gps)" />
+  </node>
+
+  <!-- 启动传感器子launch -->
+  <include file="$(find lawnmower_base)/launch/sensors.launch" />
+</launch>

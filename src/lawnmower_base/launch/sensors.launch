@@ -1,0 +1,23 @@
+<launch>
+  <!-- Orbbec Gemini335 驱动（示例，需替换为实际驱动） -->
+  <node name="orbbec_camera_node" pkg="orbbec_camera" type="orbbec_camera_node" output="screen">
+    <param name="device_type" value="gemini335" />
+    <param name="frame_id" value="orbbec_lidar_link" />
+    <param name="pointcloud_topic" value="/orbbec/raw/pointcloud" />
+  </node>
+
+  <!-- Hesai JT128 驱动（示例，需替换为实际驱动） -->
+  <node name="hesai_driver_node" pkg="hesai_driver" type="hesai_driver_node" output="screen">
+    <param name="device_type" value="jt128" />
+    <param name="imu_topic" value="/hesai/raw/imu" />
+    <param name="frame_id" value="hesai_imu_link" />
+  </node>
+
+  <!-- UM982 GPS 驱动（示例，需替换为实际驱动） -->
+  <node name="um982_driver_node" pkg="um982_driver" type="um982_driver_node" output="screen">
+    <param name="serial_port" value="/dev/ttyUSB1" />
+    <param name="baudrate" value="9600" />
+    <param name="gps_topic" value="/um982/raw/gps" />
+    <param name="frame_id" value="um982_gps_link" />
+  </node>
+</launch>
