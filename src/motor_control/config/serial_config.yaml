@@ -1,0 +1,12 @@
+# RK3588串口配置（motor control）
+serial:
+  port: /dev/ttyS2    # RK3588硬件串口（需确认实际引脚）
+  baudrate: 115200
+  parity: none
+  stopbits: 1
+  bytesize: 8
+  timeout: 0.1        # 串口超时 (s)
+motor:
+  wheel_base: 0.5     # 轮距 (m)
+  wheel_radius: 0.1   # 轮径 (m)
+  gear_ratio: 10      # 减速比

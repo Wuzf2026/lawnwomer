@@ -1,8 +1,14 @@
 <launch>
-  <!-- 启动基础控制节点 -->
-  <node name="lawnmower_base_node" pkg="lawnmower_base" type="lawnmower_base_node" output="screen" />
-  
-  <!-- 配置参数 -->
-  <param name="publish_original" value="true" />
-  <param name="frame_id" value="base_link" />
+  <!-- 启动ROS核心 -->
+  <include file="$(find roscore)/launch/roscore.launch" />
+
+  <!-- 加载参数配置 -->
+  <param name="lawnmower_config" 
+         command="$(find xacro)/xacro '$(find lawnmower_base)/config/lawnmower_config.yaml'" />
+
+  <!-- 启动核心节点 -->
+  <include file="$(find lawnmower_base)/launch/lawnmower_base.launch" />
+
+  <!-- 可选：启动RViz可视化 -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find lawnmower_base)/config/rviz_config.rviz" output="screen" />
 </launch>

@@ -1,23 +1,24 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>motor_control</name>
+  <name>tools</name>
   <version>0.0.0</version>
-  <description>Motor control node for RK3588 (serial communication, /cmd_vel subscriber)</description>
+  <description>Debug tools for lawnmower (RK3588 ROS1 Noetic)</description>
   <maintainer email="dev@example.com">Developer</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>lawnmower_msgs</build_depend>
-  <build_depend>libserial-dev</build_depend>
 
   <exec_depend>roscpp</exec_depend>
+  <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>lawnmower_msgs</exec_depend>
-  <exec_depend>libserial0</exec_depend>
+  <exec_depend>python3-pip</exec_depend>
 
   <export>
   </export>

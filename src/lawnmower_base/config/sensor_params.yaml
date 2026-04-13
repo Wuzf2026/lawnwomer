@@ -1,0 +1,29 @@
+# Orbbec Gemini335配置
+orbbec:
+  device_id: "0"
+  usb_port: "/dev/bus/usb/001/005"  # RK3588 USB端口
+  frame_id: "orbbec_pointcloud"
+  width: 640
+  height: 480
+  fps: 30
+  point_step: 32  # 每个点字节数（x/y/z/rgba）
+  is_dense: true
+  is_bigendian: false
+
+# Hesai JT128配置
+hesai:
+  ip_address: "192.168.1.200"  # 雷达IP
+  port: 9347
+  frame_id: "hesai_imu"
+  imu_rate: 200  # IMU频率Hz
+  orientation_covariance: [0.001, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.001]
+  angular_velocity_covariance: [0.001, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.001]
+  linear_acceleration_covariance: [0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.01]
+
+# UM982 RTK配置
+um982:
+  serial_port: "/dev/ttyUSB0"  # RK3588 USB串口
+  baud_rate: 115200
+  frame_id: "um982_gps"
+  position_covariance: [0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.01]
+  position_covariance_type: 2  # 0:未知,1:近似,2:准确

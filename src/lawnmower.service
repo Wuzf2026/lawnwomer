@@ -1,0 +1,15 @@
+[Unit]
+Description=Lawnmower Robot Service
+After=network.target roscore.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/home/ubuntu/lawnmower_ws
+ExecStart=/bin/bash -c "source /opt/ros/noetic/setup.bash; catkin_make --cmake-args -DCMAKE_TOOLCHAIN_FILE=../rk3588_toolchain.cmake; roslaunch lawnmower_base lawnmower_base.launch & roslaunch motor_control motor_control.launch"
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

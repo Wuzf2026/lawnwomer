@@ -1,0 +1,11 @@
+# 请求：查询状态
+int32 query_type  # 0=轮速 1=IMU 2=GPS 3=全部
+---
+# 响应：状态数据
+bool success
+string status_msg
+float64 left_wheel_speed  # 左轮速 (m/s)
+float64 right_wheel_speed # 右轮速 (m/s)
+float64 imu_angular_z     # IMU偏航角速度 (rad/s)
+float64 gps_lat            # GPS纬度
+float64 gps_lon            # GPS经度

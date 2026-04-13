@@ -1,9 +1,31 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>lawnmower_base</name>
-  <version>0.0.0</version>
-  <description>lawnmower base</description>
-  <maintainer email="norco@todo.todo">norco</maintainer>
+  <version>1.0.0</version>
+  <description>Lawnmower base node for sensor data fusion</description>
+  <maintainer email="dev@lawnmower.com">Lawnmower Dev</maintainer>
   <license>MIT</license>
+
   <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>rk3588_sdk</build_depend>
+  <build_depend>orbbec_camera</build_depend>
+  <build_depend>hesai_lidar</build_depend>
+  <build_depend>handsfree_rtk</build_depend>
+
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>rk3588_sdk</exec_depend>
+  <exec_depend>orbbec_camera</exec_depend>
+  <exec_depend>hesai_lidar</exec_depend>
+  <exec_depend>handsfree_rtk</exec_depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
 </package>

@@ -1,19 +1,39 @@
-# 串口配置（RK3588）
-serial_port: "/dev/ttyUSB0"
-serial_baudrate: 115200
+# 传感器通用配置
+sensor_common:
+  publish_rate: 10.0  # 全局发布频率(Hz)
+  frame_id: "base_link"  # 基础坐标系
 
-# 坐标系配置
-frame_id:
-  base: "base_link"
-  lidar: "orbbec_lidar_link"
-  imu: "hesai_imu_link"
-  gps: "um982_gps_link"
+# Orbbec Gemini335 配置
+orbbec_gemini335:
+  enable: true
+  topic_name: "/lawnmower/pointcloud2"
+  resolution:
+    width: 1280
+    height: 720
+  frame_id: "orbbec_link"
+  point_step: 32  # 每个点字节数 (x/y/z/rgba: 4*8=32)
+  is_dense: true
+  is_bigendian: false
 
-# 传感器频率
-sensor_rate:
-  pointcloud: 10.0  # Hz
-  imu: 100.0        # Hz
-  gps: 10.0         # Hz
+# Hesai JT128 配置
+hesai_jt128:
+  enable: true
+  topic_name: "/lawnmower/imu"
+  frame_id: "hesai_link"
+  angular_velocity_cov: [0.001, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.001]
+  linear_acceleration_cov: [0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.01]
+  orientation_cov: [0.001, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.001]
 
-# 轮距（米）
-wheel_base: 0.5
+# UM982 GPS 配置
+um982:
+  enable: true
+  topic_name: "/lawnmower/gps"
+  frame_id: "gps_link"
+  position_covariance_type: 2  # 0:未知,1:近似,2:精确
+  position_cov: [0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.01]
+  status: 0  # 0:无fix,1:GPS fix,2:DGPS fix
+
+# 系统状态配置
+system_status:
+  motor_topic: "/lawnmower/motor_status"
+  sensor_conn_topic: "/lawnmower/sensor_connection"
