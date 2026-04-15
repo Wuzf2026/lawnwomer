@@ -1,12 +1,6 @@
 <launch>
-  <!-- 电机控制节点 -->
-  <node name="motor_control_node" pkg="motor_control" type="motor_control_node" output="screen">
-    <!-- 加载串口配置 -->
-    <rosparam file="$(find motor_control)/config/serial_config.yaml" command="load"/>
-    <!-- 控制参数 -->
-    <param name="max_linear_speed" value="0.5"/>  <!-- 最大线速度 (m/s) -->
-    <param name="max_angular_speed" value="1.0"/> <!-- 最大角速度 (rad/s) -->
-    <param name="serial/baudrate" value="115200"/>
-    <param name="serial/port" value="/dev/ttyS2"/> <!-- RK3588串口（根据硬件调整） -->
+  <node name="motor_control" pkg="motor_control" type="motor_node" output="screen">
+    <param name="port" value="/dev/ttyS4" />
+    <param name="baud" value="9600" />
   </node>
 </launch>

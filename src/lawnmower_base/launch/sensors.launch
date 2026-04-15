@@ -1,12 +1,23 @@
 <launch>
-  <!-- 传感器使能参数 -->
-  <param name="/orbbec_gemini335/enable" value="true" />
-  <param name="/hesai_jt128/enable" value="true" />
-  <param name="/um982/enable" value="true" />
+  <!-- Orbbec Gemini335 驱动（示例，需替换为实际驱动） -->
+  <node name="orbbec_camera_node" pkg="orbbec_camera" type="orbbec_camera_node" output="screen">
+    <param name="device_type" value="gemini335" />
+    <param name="frame_id" value="orbbec_lidar_link" />
+    <param name="pointcloud_topic" value="/orbbec/raw/pointcloud" />
+  </node>
 
-  <!-- 模拟系统状态发布（实际场景替换为硬件驱动） -->
-  <node name="sim_system_status" pkg="rospy" type="sim_system_status.py" output="screen">
-    <param name="motor_publish_rate" value="1.0" />
-    <param name="sensor_conn_publish_rate" value="1.0" />
+  <!-- Hesai JT128 驱动（示例，需替换为实际驱动） -->
+  <node name="hesai_driver_node" pkg="hesai_driver" type="hesai_driver_node" output="screen">
+    <param name="device_type" value="jt128" />
+    <param name="imu_topic" value="/hesai/raw/imu" />
+    <param name="frame_id" value="hesai_imu_link" />
+  </node>
+
+  <!-- UM982 GPS 驱动（示例，需替换为实际驱动） -->
+  <node name="um982_driver_node" pkg="um982_driver" type="um982_driver_node" output="screen">
+    <param name="serial_port" value="/dev/ttyUSB1" />
+    <param name="baudrate" value="9600" />
+    <param name="gps_topic" value="/um982/raw/gps" />
+    <param name="frame_id" value="um982_gps_link" />
   </node>
 </launch>
