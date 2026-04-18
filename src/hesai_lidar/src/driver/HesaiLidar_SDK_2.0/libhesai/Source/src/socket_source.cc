@@ -38,13 +38,12 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <cstring>
 using namespace hesai::lidar;
-SocketSource::SocketSource(const uint16_t port, const std::string& localIp, const std::string& multicastIp) {
+SocketSource::SocketSource(const uint16_t port, const std::string& multicastIp) {
   client_ip_.clear();
   udp_port_ = port;
   udp_sock_ = -1;
   multicast_ip_ = multicastIp;
   is_select_ = false;
-  localIp_ = localIp;
 }
 
 SocketSource::~SocketSource() { Close(); }
@@ -52,8 +51,8 @@ SocketSource::~SocketSource() { Close(); }
 void SocketSource::Close() {
   LogInfo("SocketSource::Close()");
 
-  // client_ip_.clear();
-  // udp_port_ = 0;
+  client_ip_.clear();
+  udp_port_ = 0;
 
   if (udp_sock_ != -1) {
 #ifdef _MSC_VER
@@ -87,8 +86,7 @@ bool SocketSource::Open() {
   memset(&serverAddr, 0, sizeof(serverAddr));
 
   serverAddr.sin_family = AF_INET;
-  if (localIp_ == "") serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-  else serverAddr.sin_addr.s_addr = inet_addr(localIp_.c_str());
+  serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
   serverAddr.sin_port = htons(udp_port_);
 
   int reuseaddr = 1;

@@ -1,6 +1,6 @@
 <launch>
-  <node pkg="hesai_ros_driver" name="hesai_ros_driver_node" type="hesai_ros_driver_node" output="screen">
+  <node pkg="hesai_lidar" name="hesai_lidar_node" type="hesai_lidar_node" output="screen">
   </node>
   <!-- rviz -->
-  <node pkg="rviz" name="rviz" type="rviz" args="-d '$(find hesai_ros_driver)/rviz/rviz.rviz'" required="true"/>
+  <!-- <node pkg="rviz" name="rviz" type="rviz" args="-d '$(find hesai_lidar)/rviz/rviz.rviz'" required="true"/> -->
 </launch>

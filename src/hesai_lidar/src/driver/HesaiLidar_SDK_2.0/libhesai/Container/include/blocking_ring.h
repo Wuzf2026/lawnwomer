@@ -12,9 +12,9 @@ namespace hesai
 namespace lidar
 {
 template <typename T, size_t N>
-class BlockingRing : public Ring_SDK<T, N>{
+class BlockingRing : public Ring<T, N>{
 public:
-    using Super = Ring_SDK<T, N>;
+    using Super = Ring<T, N>;
     using Mutex = std::mutex;
     using Condv = std::condition_variable;
     using LockS = std::lock_guard<Mutex>;           // lock in scope

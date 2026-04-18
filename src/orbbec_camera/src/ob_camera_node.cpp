@@ -364,7 +364,6 @@ void OBCameraNode::getParameters() {
   } else {
     device_preset_ = nh_private_.param<std::string>("device_preset", "");
   }
-  color_preset_ = nh_private_.param<std::string>("color_preset", "");
   // filter switch
   enable_decimation_filter_ = nh_private_.param<bool>("enable_decimation_filter", false);
   enable_hdr_merge_ = nh_private_.param<bool>("enable_hdr_merge", false);
@@ -380,7 +379,6 @@ void OBCameraNode::getParameters() {
   enable_spatial_fast_filter_ = nh_private_.param<bool>("enable_spatial_fast_filter", false);
   enable_spatial_moderate_filter_ =
       nh_private_.param<bool>("enable_spatial_moderate_filter", false);
-  enable_false_positive_filter_ = nh_private_.param<bool>("enable_false_positive_filter", false);
   decimation_filter_scale_range_ = nh_private_.param<int>("decimation_filter_scale_range", -1);
   sequence_id_filter_id_ = nh_private_.param<int>("sequence_id_filter_id", -1);
   threshold_filter_max_ = nh_private_.param<int>("threshold_filter_max", -1);

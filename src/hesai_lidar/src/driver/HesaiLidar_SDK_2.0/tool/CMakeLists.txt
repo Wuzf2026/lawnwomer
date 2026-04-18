@@ -16,6 +16,7 @@ endif()
 
 if(FIND_CUDA)
     find_package(CUDA )
+endif()
 if(${CUDA_FOUND})
   project(CommonModules LANGUAGES CXX CUDA)
 	set(CUDA_SOURCE_PROPERTY_FORMAT OBJ)
@@ -29,23 +30,11 @@ if(${CUDA_FOUND})
 else(${CUDA_FOUND})
 	MESSAGE(STATUS "cuda not found!")
 endif(${CUDA_FOUND})
-endif()
-
-
-
-set(DISENABLE_TEST_CC ON CACHE BOOL "not build test")
 
 include_directories("${PROJECT_BINARY_DIR}")
+add_definitions(-DQT_MESSAGELOGCONTEXT)
 add_subdirectory(../ Hesai_lidar_sdk)
 
-
-add_executable(packet_loss_tool
-  ./packet_loss_tool.cc
-)
-
-target_link_libraries(packet_loss_tool
-  hesai_sdk_lib
-)
 
 find_package(PCL COMPONENTS common visualization io QUIET REQUIRED)
 include_directories(${PCL_INCLUDE_DIRS})

@@ -30,6 +30,7 @@
 #ifndef PTC_1_0_PARSER_H_
 #define PTC_1_0_PARSER_H_
 #ifdef _MSC_VER
+#define native_to_big htonl
 #endif
 #include <iostream>
 #include <fstream>

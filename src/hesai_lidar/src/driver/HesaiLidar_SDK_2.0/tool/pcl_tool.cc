@@ -6,92 +6,25 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/ply_io.h>
 
-/* ------------Select the fields to be exported ------------ */
-#define ENABLE_TIMESTAMP
-#define ENABLE_RING
-#define ENABLE_INTENSITY
-// #define ENABLE_CONFIDENCE
-// #define ENABLE_WEIGHT_FACTOR
-// #define ENABLE_ENV_LIGHT
-
-/* ------------Select the required file format ------------ */
 // #define SAVE_PCD_FILE_ASCII
 // #define SAVE_PCD_FILE_BIN
 // #define SAVE_PCD_FILE_BIN_COMPRESSED
 // #define SAVE_PLY_FILE
-// #define ENABLE_VIEWER
-
-/* -------------------Select the test mode ------------------- */
-// #define LIDAR_PARSER_TEST
-// #define SERIAL_PARSER_TEST
-#define PCAP_PARSER_TEST
-// #define EXTERNAL_INPUT_PARSER_TEST
-// #define LIDAR_PARSER_TCP_TEST
+#define ENABLE_VIEWER
 
 
-#ifdef ENABLE_TIMESTAMP
-  #define TIMESTAMP_PCL_STR  (double, timestamp, timestamp)
-#else
-  #define TIMESTAMP_PCL_STR
-#endif
-#ifdef ENABLE_RING
-  #define RING_PCL_STR  (std::uint16_t, ring, ring)
-#else
-  #define RING_PCL_STR
-#endif
-#ifdef ENABLE_INTENSITY
-  #define INTENSITY_PCL_STR  (std::uint8_t, intensity, intensity)
-#else
-  #define INTENSITY_PCL_STR
-#endif
-#ifdef ENABLE_CONFIDENCE
-  #define CONFIDENCE_PCL_STR  (std::uint8_t, confidence, confidence)
-#else
-  #define CONFIDENCE_PCL_STR
-#endif
-#ifdef ENABLE_WEIGHT_FACTOR
-  #define WEIGHT_FACTOR_PCL_STR  (std::uint8_t, weightFactor, weightFactor)
-#else
-  #define WEIGHT_FACTOR_PCL_STR
-#endif
-#ifdef ENABLE_ENV_LIGHT
-  #define ENV_LIGHT_PCL_STR  (std::uint8_t, envLight, envLight)
-#else
-  #define ENV_LIGHT_PCL_STR
-#endif
 struct PointXYZIT {
   PCL_ADD_POINT4D   
-#ifdef ENABLE_TIMESTAMP
+  float intensity;
   double timestamp;
-#endif
-#ifdef ENABLE_RING
   uint16_t ring;                   
-#endif
-#ifdef ENABLE_INTENSITY
-  uint8_t intensity;
-#endif
-#ifdef ENABLE_CONFIDENCE
-  uint8_t confidence;
-#endif
-#ifdef ENABLE_WEIGHT_FACTOR
-  uint8_t weightFactor;
-#endif
-#ifdef ENABLE_ENV_LIGHT
-  uint8_t envLight;
-#endif
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW  
 } EIGEN_ALIGN16;                   
 
 POINT_CLOUD_REGISTER_POINT_STRUCT(
     PointXYZIT,
-    (float, x, x)(float, y, y)(float, z, z)
-    TIMESTAMP_PCL_STR
-    RING_PCL_STR
-    INTENSITY_PCL_STR
-    CONFIDENCE_PCL_STR
-    WEIGHT_FACTOR_PCL_STR
-    ENV_LIGHT_PCL_STR
-)
+    (float, x, x)(float, y, y)(float, z, z)(float, intensity, intensity)
+    (double, timestamp, timestamp)(std::uint16_t, ring, ring))
 
 using namespace pcl::visualization;
 std::shared_ptr<PCLVisualizer> pcl_viewer;
@@ -105,7 +38,7 @@ void lidarCallback(const LidarDecodedFrame<PointXYZIT>  &frame) {
     printf("Time between last frame and cur frame is: %u us\n", (cur_frame_time - last_frame_time));
   }
   last_frame_time = cur_frame_time;
-  printf("frame:%d points:%u packet:%u start time:%lf end time:%lf\n",frame.frame_index, frame.points_num, frame.packet_num, frame.frame_start_timestamp, frame.frame_end_timestamp);  
+  printf("frame:%d points:%u packet:%u start time:%lf end time:%lf\n",frame.frame_index, frame.points_num, frame.packet_num, frame.points[0].timestamp, frame.points[frame.points_num - 1].timestamp) ;
   pcl::PointCloud<PointXYZIT>::Ptr pcl_pointcloud(new pcl::PointCloud<PointXYZIT>);
   mex_viewer.lock();
   if (frame.points_num == 0) return;
@@ -116,10 +49,10 @@ void lidarCallback(const LidarDecodedFrame<PointXYZIT>  &frame) {
   pcl_pointcloud->width = frame.points_num;
   pcl_pointcloud->is_dense = false;
 
-  std::string file_name1 = "./PointCloudFrame" + std::to_string(frame.frame_index) + "_" + std::to_string(frame.frame_start_timestamp)+ ".pcd";
-  std::string file_name2 = "./PointCloudFrame" + std::to_string(frame.frame_index) + "_" + std::to_string(frame.frame_start_timestamp)+ ".bin";
-  std::string file_name3 = "./PointCloudFrame" + std::to_string(frame.frame_index) + "_" + std::to_string(frame.frame_start_timestamp)+ ".ply";
-  std::string file_name4 = "./PointCloudFrame" + std::to_string(frame.frame_index) + "_" + std::to_string(frame.frame_start_timestamp)+ "_compress" + ".bin";
+  std::string file_name1 = "./PointCloudFrame" + std::to_string(frame.frame_index) + "_" + std::to_string(frame.points[0].timestamp)+ ".pcd";
+  std::string file_name2 = "./PointCloudFrame" + std::to_string(frame.frame_index) + "_" + std::to_string(frame.points[0].timestamp)+ ".bin";
+  std::string file_name3 = "./PointCloudFrame" + std::to_string(frame.frame_index) + "_" + std::to_string(frame.points[0].timestamp)+ ".ply";
+  std::string file_name4 = "./PointCloudFrame" + std::to_string(frame.frame_index) + "_" + std::to_string(frame.points[0].timestamp)+ "_compress" + ".bin";
 //save point cloud with pcd file(ASCII) if define SAVE_PCD_FILE_ASCII.
 #ifdef SAVE_PCD_FILE_ASCII
   pcl::PCDWriter writer;
@@ -168,57 +101,17 @@ int main(int argc, char *argv[])
   HesaiLidarSdk<PointXYZIT> sample;
   DriverParam param;
   // assign param
-  param.use_gpu = (argc > 1);
-  // assign param
-#ifdef LIDAR_PARSER_TEST
+  param.use_gpu = false;
   param.input_param.source_type = DATA_FROM_LIDAR;
-  param.input_param.device_ip_address = "192.168.1.201";  // lidar ip
-  param.input_param.ptc_port = 9347; // lidar ptc port
-  param.input_param.udp_port = 2368; // point cloud destination port
-  param.input_param.multicast_ip_address = "";
-
-  param.input_param.use_ptc_connected = true;  // true: use PTC connected, false: recv correction from local file
-  param.input_param.correction_file_path = "Your correction file path";
-  param.input_param.firetimes_path = "Your firetime file path";
-
-  param.input_param.host_ip_address = ""; // point cloud destination ip, local ip
-  param.input_param.fault_message_port = 9348; // fault message destination port
-
-#elif defined (SERIAL_PARSER_TEST)
-  param.input_param.source_type = DATA_FROM_SERIAL;
-  param.input_param.rs485_com = "Your serial port name for receiving point cloud";
-  param.input_param.rs232_com = "Your serial port name for sending cmd";
-  param.input_param.point_cloud_baudrate = 3125000;
-  param.input_param.correction_file_path = "Your correction file path";
-
-#elif defined (PCAP_PARSER_TEST)
-  param.input_param.source_type = DATA_FROM_PCAP;
+  param.input_param.device_ip_address = "192.168.1.201";
+  param.input_param.udp_port = 2368;
+  param.input_param.ptc_port = 9347;
   param.input_param.pcap_path = "Your pcap file path";
   param.input_param.correction_file_path = "Your correction file path";
   param.input_param.firetimes_path = "Your firetime file path";
 
-
-  param.decoder_param.pcap_play_synchronization = true;
-  param.decoder_param.pcap_play_in_loop = false; // pcap palyback
-
-#elif defined (EXTERNAL_INPUT_PARSER_TEST)
-  param.input_param.source_type = DATA_FROM_ROS_PACKET;
-  param.input_param.correction_file_path = "Your correction file path";
-  param.input_param.firetimes_path = "Your firetime file path";
-
-#elif defined (LIDAR_PARSER_TCP_TEST)
-  param.input_param.source_type = DATA_FROM_LIDAR_TCP;
-  param.input_param.device_ip_address = "192.168.1.201";  // lidar ip
-  param.input_param.device_tcp_src_port = 5121; // lidar pointcloud tcp port
-  param.input_param.ptc_port = 9347; // lidar ptc port
-  param.input_param.use_ptc_connected = true;  // true: use PTC connected, false: recv correction from local file
-  param.input_param.correction_file_path = "Your correction file path";
-  param.input_param.firetimes_path = "Your firetime file path";
-#endif
-
-  param.decoder_param.enable_packet_loss_tool = false;
+  param.decoder_param.distance_correction_flag = false;
   param.decoder_param.socket_buffer_size = 262144000;
-
   //init lidar with param
   sample.Init(param);
 
@@ -228,7 +121,7 @@ int main(int argc, char *argv[])
   //star process thread
   last_frame_time = GetMicroTickCount();
   sample.Start();
-  if (sample.lidar_ptr_->GetInitFinish(FailInit)) {
+  if (sample.lidar_ptr_->init_finish_[FailInit]) {
     sample.Stop();
     return -1;
   }

@@ -45,7 +45,7 @@ enum class ReturnCode : int {
   LiDAR2GroundCalibrationUnloaded = 4,
   CudaMemcpyHostToDeviceError = 5,
   CudaMemcpyDeviceToHostError = 6,
-  CudaInitError = 7,
+  LiDARPacketInvalid = 7,
   LiDARPacketExpired = 8,
   LiDARPacketNewFrame = 9,
   LiDARPacketPreFrame = 10,

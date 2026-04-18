@@ -17,10 +17,9 @@
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>rospy</exec_depend>
-  <exec_depend>roslaunch</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
 
   <export>
-    <roslaunch file="launch/handsfree_rtk.launch"/>
+
   </export>
 </package>
