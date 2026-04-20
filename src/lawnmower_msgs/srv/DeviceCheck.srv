@@ -1,0 +1,5 @@
+uint8 check_type
+---
+bool online_state
+string device_name
+float32 data_freq

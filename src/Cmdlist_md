@@ -1,0 +1,420 @@
+
+## 一、前置环境准备
+#1.ROS1 Noetic 安装（若未部署）
+
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu focal main" > /etc/apt/sources.list.d/ros-latest.list'
+sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FB24ADD78A6
+sudo apt update
+
+# 2.安装核心依赖（适配RK3588）
+sudo apt install ros-noetic-ros-base ros-noetic-catkin ros-noetic-rostopic ros-noetic-rosbag ros-noetic-rviz libusb-1.0-0-dev libopencv-dev librk-mpp-dev
+
+# 3.初始化rosdep（解决包依赖）
+sudo rosdep init
+rosdep update
+
+# 4.环境变量永久生效
+echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+
+### 工程包编译前置处理
+
+# 进入工作空间
+cd ~/lawnmower_ws
+
+# 安装所有功能包依赖
+rosdep install --from-paths src --ignore-src -r -y
+
+# 编译（禁用GPU解析，适配RK3588无NVIDIA GPU）
+catkin_make -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=src/rk3588_toolchain.cmake -DENABLE_GPU_PARSER=OFF
+
+# 工程环境变量生效
+echo "source ~/lawnmower_ws/devel/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+
+安装 udev 规则：
+cd ~/ros_ws
+source ./devel/setup.bash
+roscd orbbec_camera
+sudo bash ./scripts/install_udev_rules.sh
+
+## 启动相机
+#终端 1：
+source ./devel/setup.bash
+roslaunch orbbec_camera gemini_330_series.launch
+
+
+#查看话题、服务和参数（终端3）：
+
+```
+rostopic list
+rosservice list
+rosparam list
+```
+
+输出话题：
+
+```
+rostopic echo /camera/depth/camera_info
+```
+
+调用服务：
+
+```
+rosservice call /camera/get_sdk_version "{}"
+
+
+## 三、Hesai JT128 雷达（ETH）原始数据获取
+
+### 3\.1 功能包核心解读
+
+工程包路径：`lawnmower\_ws/src/hesai\_lidar/`
+
+- 核心模块：
+
+    - SDK：`HesaiLidar\_SDK\_2\.0`（UDP 解析 / 网络通信核心）；
+
+    - 解析器：`UdpParser`（JT128 UDP 协议解析，禁用 GPU 版）；
+
+    - 节点管理：`node\_manager\.cc`（雷达节点入口）；
+
+- 通信方式：ETH（UDP），需配置同一网段 IP。
+
+### 3\.2 网络配置（ETH 通信核心）
+
+#### 3\.2\.1 硬件连接
+
+JT128 雷达通过**千兆网线**连接 RK3588 的 ETH 网口（优先千兆网口，`ifconfig`查看网口名，如`eth0`）。
+
+#### 3\.2\.2 IP 配置（雷达 \+ RK3588）
+
+JT128 默认 IP：`192\.168\.1\.201`，需将 RK3588 网口配置为同网段（如`192\.168\.1\.100`）。
+
+```bash
+# 1. 临时配置IP（重启失效）
+sudo ifconfig eth0 192.168.1.100 netmask 255.255.255.0 up
+
+# 2. 永久配置IP（netplan）
+sudo vim /etc/netplan/01-hesai-eth.yaml
+# 写入以下内容：
+network:
+  ethernets:
+    eth0:
+      dhcp4: no
+      addresses: [192.168.1.100/24]
+      gateway4: 192.168.1.1
+  version: 2
+
+# 3. 应用配置
+sudo netplan apply
+
+# 4. 验证网络连通性
+ping 192.168.1.201 -c 5
+# 丢包率0%则网络正常
+```
+
+### 3\.3 配置文件与 Launch 编写
+
+#### 3\.3\.1 新建 JT128 配置文件
+
+路径：`lawnmower\_ws/src/hesai\_lidar/config/jt128\.yaml`
+
+```yaml
+# JT128原始数据配置
+lidar_type: "JT128"
+source_type: "socket"  # ETH UDP模式
+socket:
+  ip: "0.0.0.0"        # RK3588监听所有IP
+  port: 9347           # JT128默认UDP端口
+  protocol: "udp"
+parser:
+  type: "udp"
+  model: "jt128"       # 匹配JT128解析器
+publish_raw_pointcloud: true  # 发布原始点云
+frame_id: "hesai_jt128_link"
+rate: 10               # 雷达帧率
+```
+
+#### 3\.3\.2 新建 Launch 文件
+
+路径：`lawnmower\_ws/src/hesai\_lidar/launch/jt128\.launch`
+
+```xml
+<launch>
+  <!-- 加载JT128配置 -->
+  <rosparam file="$(find hesai_lidar)/config/jt128.yaml" command="load"/>
+  
+  <!-- 启动JT128节点（禁用GPU解析） -->
+  <node name="hesai_jt128_node" pkg="hesai_lidar" type="node_manager" output="screen">
+    <param name="lidar_type" value="JT128"/>
+    <param name="socket_ip" value="192.168.1.100"/>
+    <param name="socket_port" value="9347"/>
+    <param name="enable_gpu_parser" value="false"/>
+    <param name="publish_raw_pointcloud" value="true"/>
+  </node>
+</launch>
+```
+
+### 3\.4 启动节点与原始数据验证
+
+#### 3\.4\.1 启动节点
+
+```bash
+roslaunch hesai_lidar jt128.launch
+```
+
+#### 3\.4\.2 查看原始数据话题
+
+```bash
+rostopic list | grep jt128
+# 核心原始数据话题：
+# /hesai_jt128/pointcloud_raw  原始点云（sensor_msgs/PointCloud2）
+# /hesai_jt128/status_raw      雷达状态原始数据（自定义msg）
+```
+
+#### 3\.4\.3 数据验证
+
+```bash
+# 1. 查看原始点云帧率
+rostopic hz /hesai_jt128/pointcloud_raw
+
+# 2. 查看原始点云内容（关键字段）
+rostopic echo /hesai_jt128/pointcloud_raw --noarr
+
+# 3. 可视化原始点云
+rosrun rviz rviz -d $(rospack find hesai_lidar)/rviz/hesai_rviz.rviz
+# 添加PointCloud2显示，选择/hesai_jt128/pointcloud_raw
+```
+
+### 3\.5 常见问题与调试方案
+
+|问题现象|调试步骤||
+|---|---|---|
+|无点云数据，节点日志提示 “socket bind 失败”|1\. 检查端口是否被占用：\`sudo netstat \-anp|grep 9347`，占用则修改端口；\&lt;br\&gt;2\. 关闭防火墙：`sudo ufw disable`；\&lt;br\&gt;3\. 验证IP配置：`ifconfig eth0\` 确认 IP 为 \[192\.168\.1\.100\]\(192\.168\.1\.100\)。|
+|抓包有 UDP 数据但无点云|1\. 确认解析器匹配 JT128：修改 yaml 中`parser/model`为对应解析器（如 udp\_p64\_parser）；<br>2\. 检查 SDK 初始化日志：`grep \&\#34;parser init\&\#34; \~/\.ros/log/xxx/hesai\_jt128\_node\.log`；<br>3\. 禁用 PTC 客户端：注释`node\_manager\.cc`中 PtcClient 初始化代码。||
+|点云丢包 / 帧率低|1\. 确认网口为千兆：`ethtool eth0`（Speed=1000Mb/s）；<br>2\. 增大 UDP 接收缓存：`sudo sysctl \-w net\.core\.rmem\_max=26214400`；<br>3\. 修改`socket\_source\.cc`：`setsockopt\(sock\_fd, SOL\_SOCKET, SO\_RCVBUF, \&amp;buf\_size, sizeof\(buf\_size\)\)`（buf\_size=26214400）。||
+|编译报错（\[ring\.cc\]\(ring\.cc\) C\+\+17 未支持）|修改`hesai\_lidar/CMakeLists\.txt`：<br>`set\(CMAKE\_CXX\_STANDARD 17\)`<br>`set\(CMAKE\_CXX\_STANDARD\_REQUIRED ON\)`。||
+
+## 四、T\-RTK UM982（USB）原始数据获取
+
+### 4\.1 功能包核心解读
+
+工程包路径：`lawnmower\_ws/src/handsfree\_rtk/` \+ `rk3588\_sdk/`
+
+- 核心驱动：`rk3588\_sdk/src/uart\_driver\.cpp`（RK3588 USB 串口驱动）；
+
+- 数据协议：NMEA\-0183（原始定位数据）、RTK 原始观测值；
+
+- 核心节点：`rtk\_node`（解析 UM982 原始数据）。
+
+### 4\.2 硬件连接与串口权限配置
+
+#### 4\.2\.1 硬件连接
+
+UM982 通过**USB 转串口模块**（RS232/485）连接 RK3588 的 USB 端口，推荐使用 FT232 模块（兼容性优于 CH340）。
+
+#### 4\.2\.2 串口识别与权限配置
+
+```bash
+# 1. 识别串口设备（插拔前后对比）
+ls /dev/ttyUSB*  # 通常为/dev/ttyUSB0
+ls /dev/ttyACM*  # 部分模块为ttyACM0
+
+# 2. 权限配置（临时+永久）
+# 临时权限（立即生效）
+sudo chmod 666 /dev/ttyUSB0
+
+# 永久权限（udev规则）
+sudo vim /etc/udev/rules.d/99-um982.rules
+# 写入内容：
+SUBSYSTEM=="tty", KERNEL=="ttyUSB*", MODE="0666", GROUP="dialout"
+SUBSYSTEM=="tty", KERNEL=="ttyACM*", MODE="0666", GROUP="dialout"
+
+# 3. 重启udev服务
+sudo udevadm control --reload-rules && sudo udevadm trigger
+
+# 4. 添加用户到dialout组（需重新登录）
+sudo usermod -aG dialout $USER
+```
+
+#### 4\.2\.3 验证串口连通性
+
+```bash
+# 1. 测试串口通信（UM982默认波特率115200）
+screen /dev/ttyUSB0 115200
+# 若看到乱码/字符流，说明串口物理连通
+
+# 2. 退出screen：Ctrl+A + K + Y
+```
+
+### 4\.3 配置文件与 Launch 编写
+
+#### 4\.3\.1 新建 UM982 配置文件
+
+路径：`lawnmower\_ws/src/handsfree\_rtk/config/um982\.yaml`
+
+```yaml
+# UM982原始数据配置
+serial:
+  port: "/dev/ttyUSB0"
+  baudrate: 115200
+  parity: "none"
+  stopbits: 1
+  databits: 8
+  flow_control: "none"
+publish_raw_nmea: true  # 发布NMEA原始数据
+publish_raw_obs: true   # 发布RTK原始观测值
+frame_id: "um982_link"
+rate: 10                # 数据发布帧率
+```
+
+#### 4\.3\.2 新建 Launch 文件
+
+路径：`lawnmower\_ws/src/handsfree\_rtk/launch/um982\.launch`
+
+```xml
+<launch>
+  <!-- 加载UM982配置 -->
+  <rosparam file="$(find handsfree_rtk)/config/um982.yaml" command="load"/>
+  
+  <!-- 启动RK3588串口驱动 -->
+  <node name="uart_driver_node" pkg="rk3588_sdk" type="sdk_node" output="screen">
+    <param name="uart_port" value="/dev/ttyUSB0"/>
+    <param name="uart_baudrate" value="115200"/>
+    <param name="uart_parity" value="none"/>
+  </node>
+  
+  <!-- 启动UM982 RTK解析节点 -->
+  <node name="um982_node" pkg="handsfree_rtk" type="rtk_node" output="screen">
+    <param name="serial_port" value="/dev/ttyUSB0"/>
+    <param name="publish_nmea_raw" value="true"/>
+    <param name="publish_obs_raw" value="true"/>
+  </node>
+</launch>
+```
+
+### 4\.4 启动节点与原始数据验证
+
+#### 4\.4\.1 启动节点
+
+```bash
+roslaunch handsfree_rtk um982.launch
+```
+
+#### 4\.4\.2 查看原始数据话题
+
+```bash
+rostopic list | grep um982
+# 核心原始数据话题：
+# /um982/nmea_raw       NMEA原始数据（std_msgs/String，含$GPGGA/$GPRMC等）
+# /um982/obs_raw        RTK原始观测值（自定义msg，含伪距/载波相位等）
+```
+
+#### 4\.4\.3 数据验证
+
+```bash
+# 1. 查看NMEA原始数据内容
+rostopic echo /um982/nmea_raw
+
+# 2. 查看数据帧率
+rostopic hz /um982/nmea_raw
+
+# 3. 保存原始数据到ROSBag（离线分析）
+rosbag record /um982/nmea_raw /um982/obs_raw -O um982_raw.bag
+```
+
+### 4\.5 常见问题与调试方案
+
+|问题现象|调试步骤||
+|---|---|---|
+|串口无法打开（Permission denied）|1\. 确认用户在 dialout 组：`groups $USER`（含 dialout 则正常）；<br>2\. 重新插拔串口模块；<br>3\. 验证 udev 规则：`udevadm test /sys/bus/usb/devices/xxx`。||
+|串口有数据但无 NMEA 解析|1\. 确认波特率匹配（UM982 默认 115200，若修改过需同步配置）；<br>2\. 用`minicom \-D /dev/ttyUSB0 \-b 115200`查看原始数据，确认是 NMEA 协议；<br>3\. 检查`rtk\_node`解析代码，添加 UM982 NMEA 字段兼容。||
+|数据乱码 / 丢包|1\. 降低波特率测试：如 9600；<br>2\. 更换 FT232 USB 转串口模块；<br>3\. 启用串口流控：修改`uart\_driver\.cpp`，添加 \`options\.c\_cflag|= CRTSCTS;\`。|
+|编译报错（uart\_485\.c 未定义）|修改`rk3588\_sdk/CMakeLists\.txt`：<br>`include\_directories\(/usr/include\)`<br>`target\_link\_libraries\(sdk\_node pthread\)`。||
+
+## 五、多设备整合与整体调试
+
+### 5\.1 整合 Launch 文件
+
+路径：`lawnmower\_ws/src/launch/all\_devices\.launch`
+
+```xml
+<launch>
+  <!-- Orbbec Gemini335 -->
+  <include file="$(find orbbec_camera)/launch/gemini335.launch"/>
+  
+  <!-- Hesai JT128 -->
+  <include file="$(find hesai_lidar)/launch/jt128.launch"/>
+  
+  <!-- T-RTK UM982 -->
+  <include file="$(find handsfree_rtk)/launch/um982.launch"/>
+</launch>
+```
+
+### 5\.2 启动所有设备
+
+```bash
+roslaunch launch all_devices.launch
+```
+
+### 5\.3 整体数据验证
+
+```bash
+# 1. 查看所有原始数据话题
+rostopic list | grep raw
+
+# 2. 批量检查帧率
+rostopic hz /gemini335/color/image_raw /hesai_jt128/pointcloud_raw /um982/nmea_raw
+
+# 3. 录制所有原始数据（60秒）
+rosbag record -a -O all_devices_raw.bag --duration=60
+
+# 4. 资源监控（RK3588负载）
+top -p $(pgrep -f ob_camera_node) -p $(pgrep -f hesai_jt128_node) -p $(pgrep -f um982_node)
+iftop -i eth0  # 监控ETH带宽
+usbmon -t 1    # 监控USB带宽
+```
+
+### 5\.4 系统级调试技巧
+
+1. **日志调试**：
+
+    ```bash
+    # 查看节点详细日志
+    rosnode debug /ob_camera_node
+    rosnode debug /hesai_jt128_node
+    rosnode debug /um982_node
+    
+    # 过滤关键日志
+    grep "error" ~/.ros/log/latest/rosout.log
+    ```
+
+2. **依赖冲突排查**：
+
+    ```bash
+    # 检查包依赖
+    rospack depends1 orbbec_camera hesai_lidar handsfree_rtk
+    
+    # 检查库版本
+    ldd $(rospack find hesai_lidar)/lib/hesai_lidar/node_manager | grep libusb
+    ```
+
+3. **硬件兼容性**：
+
+    - RK3588 USB 端口供电不足：外接 USB 集线器（带电源）；
+
+    - ETH 网口不稳定：更换工业级千兆网线 / 网口。
+
+## 六、总结
+
+本文从**环境准备→单设备调试→多设备整合**，完整覆盖了三款设备的原始数据获取流程，核心调试原则：
+
+1. 先单设备验证（确保硬件 / 驱动 / 数据正常），再整合；
+
+2. 优先排查基础问题（权限 / IP / 波特率），再排查软件解析；
+
+3. 利用日志、抓包、RVIZ/ROSBag 等工具定位问题。
+
+通过以上步骤，可稳定获取 Orbbec Gemini335 的双目原始帧、Hesai JT128 的原始点云、UM982 的 RTK 原始数据，满足后续算法开发的原始数据需求。
+
+> （注：文档部分内容可能由 AI 生成）
