@@ -150,6 +150,10 @@ rostopic hz /hesai_jt128/pointcloud_raw  # 检查点云频率
 # UM982 RTK测试
 roslaunch handsfree_rtk um982.launch  # 启动RTK
 rostopic echo /um982/nmea_raw  # 查看NMEA原始数据
+# 电机测试控制
+rostopic pub /cmd_vel geometry_msgs/Twist '{linear: {x: 0.3}, angular: {z: 0.2, y: 3.0}}' -r 10
+# 查看轮速回传
+rostopic echo /wheel_speed
 系统集成测试：
 # 启动所有设备
 roslaunch launch all_devices.launch
