@@ -1,4 +1,4 @@
-#include "lawnmower_base/rtk_driver.h"
+#include "lawnmower_base/rtk_driver.hpp"
 
 RTKDriver::RTKDriver(ros::NodeHandle& nh, ros::NodeHandle& nh_private)
     : nh_(nh),

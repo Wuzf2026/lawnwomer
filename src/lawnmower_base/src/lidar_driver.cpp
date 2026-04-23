@@ -1,4 +1,4 @@
-#include "lawnmower_base/lidar_driver.h"
+#include "lawnmower_base/lidar_driver.hpp"
 
 LiDARDriver::LiDARDriver(ros::NodeHandle& nh, ros::NodeHandle& nh_private)
     : nh_(nh),

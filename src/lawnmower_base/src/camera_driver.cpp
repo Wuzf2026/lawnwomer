@@ -1,4 +1,9 @@
-#include "lawnmower_base/camera_driver.h"
+#ifdef OBSENSOR_SDK_FOUND
+#include <libobsensor/ObSensor.hpp>
+#else
+#warning "Orbbec ObSensor SDK not found, camera functions will be disabled"
+#endif
+#include "lawnmower_base/camera_driver.hpp"
 CameraDriver::CameraDriver(ros::NodeHandle& nh, ros::NodeHandle& nh_private)
     : nh_(nh),
       nh_private_(nh_private),
