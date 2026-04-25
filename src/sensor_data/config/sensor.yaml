@@ -1,0 +1,5 @@
+cloud_width: 1280
+cloud_height: 720
+imu_rate: 100.0
+gps_tty: "/dev/ttyUSB0"
+gps_baud: 115200
