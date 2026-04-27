@@ -1,92 +1,84 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.10.2)
 project(sensor_data)
 
-# ===================== 核心配置（适配RK3588） =====================
-# 调试模式 + RK3588 aarch64架构优化
-set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_SYSTEM_PROCESSOR aarch64)
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -march=armv8-a -Wall")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -march=armv8-a -Wall")
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O2 -march=armv8-a -fPIC")
+set(CMAKE_BUILD_TYPE Release)
 
-# 库文件路径（从build.sh传入的LIB_OUTPUT_DIR）
-if(DEFINED LIB_OUTPUT_DIR)
-  set(LIB_BASE_DIR ${LIB_OUTPUT_DIR})
-else()
-  set(LIB_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libs)  # 兜底路径
-endif()
-
-# ===================== 查找依赖 =====================
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   sensor_msgs
-  rk3588_sdk
-  handsfree_rtk
-  orbbec_camera
-  hesai_lidar
+  nav_msgs
+  geometry_msgs
+  pcl_ros
+  pcl_conversions
 )
 
-# 声明catkin包（移除backward_ros相关）
+find_package(PCL REQUIRED common io)
+find_package(yaml-cpp REQUIRED)
+
+# 修复 yaml-cpp 警告
+set(yaml-cpp_INCLUDE_DIRS /usr/include/yaml-cpp)
+set(yaml-cpp_LIBRARIES /usr/lib/aarch64-linux-gnu/libyaml-cpp.so)
+
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES sensor_data
-  CATKIN_DEPENDS roscpp std_msgs sensor_msgs rk3588_sdk handsfree_rtk orbbec_camera hesai_lidar
-  DEPENDS
+  LIBRARIES sensor_data_driver sensor_fusion
+  CATKIN_DEPENDS roscpp std_msgs sensor_msgs nav_msgs geometry_msgs pcl_ros pcl_conversions
+  DEPENDS yaml-cpp PCL
 )
 
-# ===================== 头文件路径 =====================
 include_directories(
   include
+  include/hesai_lidar
+  include/handsfree_rtk
   ${catkin_INCLUDE_DIRS}
-  # 依赖包头文件（RK3588适配）
-  ${LIB_BASE_DIR}/rk3588_sdk
-  ${LIB_BASE_DIR}/handsfree_rtk
-  ${LIB_BASE_DIR}/orbbec_camera
-  ${LIB_BASE_DIR}/hesai_lidar
+  ${YAML_CPP_INCLUDE_DIR}
+  ${PCL_INCLUDE_DIRS}
 )
 
-# ===================== 链接库路径 =====================
-link_directories(
-  ${catkin_LIBRARY_DIRS}
-  ${LIB_BASE_DIR}/rk3588_sdk
-  ${LIB_BASE_DIR}/handsfree_rtk
-  ${LIB_BASE_DIR}/orbbec_camera
-  ${LIB_BASE_DIR}/hesai_lidar
+add_library(sensor_data_driver
+  src/orbbec_driver.cpp
+  src/hesai_imu_driver.cpp
+  src/hesai_imu_api.cpp
+  src/um982_gps_driver.cpp
+  src/um982_gps_api.cpp
+  src/data_collect.cpp
+)
+target_link_libraries(sensor_data_driver
+  ${catkin_LIBRARIES}
+  ${YAML_CPP_LIBRARIES}
+  ${PCL_LIBRARIES}
 )
 
-# ===================== 编译可执行文件 =====================
-# 传感器数据融合节点
-add_executable(sensor_data_node
-  src/sensor_data_node.cpp
-  src/sensor_fusion.cpp  # 传感器融合核心逻辑
+add_library(sensor_fusion src/sensor_fusion.cpp)
+target_link_libraries(sensor_fusion
+  ${catkin_LIBRARIES}
+  sensor_data_driver
+  ${YAML_CPP_LIBRARIES}
+  ${PCL_LIBRARIES}
 )
 
-# 链接依赖库（移除backward_ros）
+add_executable(sensor_data_node src/sensor_data_node.cpp)
 target_link_libraries(sensor_data_node
   ${catkin_LIBRARIES}
-  rk3588_sdk        # RK3588硬件SDK库
-  handsfree_rtk     # RTK定位库
-  orbbec_camera     # 奥比中光相机库
-  hesai_lidar       # 禾赛激光雷达库
+  sensor_data_driver
+  sensor_fusion
+  ${YAML_CPP_LIBRARIES}
+  ${PCL_LIBRARIES}
 )
 
-# ===================== 安装规则 =====================
-# 安装可执行文件
-install(TARGETS sensor_data_node
+install(TARGETS sensor_data_driver sensor_fusion sensor_data_node
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-# 安装头文件
-install(DIRECTORY include/${PROJECT_NAME}/
+install(DIRECTORY include/sensor_data include/hesai_lidar include/handsfree_rtk
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+  FILES_MATCHING PATTERN "*.h"
 )
 
-# ===================== 单独编译调试配置 =====================
-# 支持单独编译（catkin_make --cmake-target sensor_data_node）
-add_custom_target(sensor_data_debug
-  COMMAND gdb ${CATKIN_DEVEL_PREFIX}/lib/${PROJECT_NAME}/sensor_data_node
-  DEPENDS sensor_data_node
-  COMMENT "启动sensor_data节点调试（GDB）"
-)
+install(DIRECTORY launch config DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

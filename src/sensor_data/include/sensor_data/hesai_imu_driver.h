@@ -1,18 +1,25 @@
 #ifndef HESAI_IMU_DRIVER_H
 #define HESAI_IMU_DRIVER_H
-#include "common.h"
 
-class HesaiImuDriver
-{
+#include "sensor_common_config.h"
+#include <sensor_msgs/Imu.h>
+
+class HesaiImuDriver {
 public:
-    HesaiImuDriver();
+    HesaiImuDriver() : m_online(false) {}
     ~HesaiImuDriver();
+
     bool Init(const SensorConfig& cfg);
-    bool GetImuData(sensor_msgs::Imu& msg);
-    bool IsOnline();
+    bool GetImuData(sensor_msgs::Imu& imu_msg);
 
 private:
     bool m_online;
     SensorConfig m_cfg;
 };
-#endif
+
+// 补齐缺失的函数声明
+int hesai_eth_init();
+void hesai_eth_close();
+bool hesai_get_imu_raw(double q[4], double w[3], double a[3]);
+
+#endif // HESAI_IMU_DRIVER_H

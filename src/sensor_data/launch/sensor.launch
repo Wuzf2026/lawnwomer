@@ -1,4 +1,4 @@
 <launch>
     <rosparam file="$(find sensor_data)/config/sensor.yaml" command="load"/>
-    <node name="sensor_data_collect" pkg="sensor_data" type="data_collect" output="screen" respawn="true"/>
+    <node name="sensor_data_collect" pkg="sensor_data" type="sensor_data_node" output="screen" respawn="true"/>
 </launch>

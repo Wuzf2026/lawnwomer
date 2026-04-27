@@ -18,7 +18,7 @@ public:
      */
     Eigen::Isometry3d fusion(const std::vector<double>& rtk_data,
                              const std::vector<float>& lidar_data,
-                             const std::vector<uchar>& camera_data,
+                             const std::vector<unsigned char>& camera_data,
                              const std::vector<double>& imu_data);
 
 private:

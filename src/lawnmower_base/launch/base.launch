@@ -1,8 +1,0 @@
-<launch>
-  <!-- 启动基础控制节点 -->
-  <node name="lawnmower_base_node" pkg="lawnmower_base" type="lawnmower_base_node" output="screen" />
-  
-  <!-- 配置参数 -->
-  <param name="publish_original" value="true" />
-  <param name="frame_id" value="base_link" />
-</launch>

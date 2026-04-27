@@ -1,6 +1,6 @@
 #ifndef DATA_COLLECT_H
 #define DATA_COLLECT_H
-#include "common.h"
+#include "sensor_common_config.h"
 #include "orbbec_driver.h"
 #include "hesai_imu_driver.h"
 #include "um982_gps_driver.h"

@@ -27,7 +27,7 @@ void DataCollectManager::PublishAllSensor()
     sensor_msgs::Imu imu_msg;
     sensor_msgs::NavSatFix gps_msg;
 
-    if(m_orbbec.GetPointCloud2(cloud_msg)) pub_orbbec_cloud.publish(cloud_msg);
+    if(m_orbbec.GetPointCloud(cloud_msg)) pub_orbbec_cloud.publish(cloud_msg);
     if(m_hesai.GetImuData(imu_msg))        pub_hesai_imu.publish(imu_msg);
     if(m_gps.GetNavSatFix(gps_msg))        pub_um982_gps.publish(gps_msg);
 }

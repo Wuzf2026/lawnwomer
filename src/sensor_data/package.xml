@@ -2,29 +2,31 @@
 <package format="2">
   <name>sensor_data</name>
   <version>1.0.0</version>
-  <description>RK3588 ROS1 Noetic 传感器数据融合包（移除backward_ros依赖）</description>
-  <maintainer email="dev@example.com">RK3588 Dev</maintainer>
+  <description>Sensor Data Package</description>
+  <maintainer email="dev@example.com">Maintainer</maintainer>
   <license>MIT</license>
 
-  <!-- ROS1 基础依赖 -->
   <buildtool_depend>catkin</buildtool_depend>
+
   <build_depend>roscpp</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>sensor_msgs</build_depend>
-  <build_depend>rk3588_sdk</build_depend>
-  <build_depend>handsfree_rtk</build_depend>
-  <build_depend>orbbec_camera</build_depend>
-  <build_depend>hesai_lidar</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>yaml-cpp</build_depend>
+  <build_depend>pcl_ros</build_depend>
+  <build_depend>pcl_conversions</build_depend>
 
   <exec_depend>roscpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
-  <exec_depend>rk3588_sdk</exec_depend>
-  <exec_depend>handsfree_rtk</exec_depend>
-  <exec_depend>orbbec_camera</exec_depend>
-  <exec_depend>hesai_lidar</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>yaml-cpp</exec_depend>
+  <exec_depend>pcl_ros</exec_depend>
+  <exec_depend>pcl_conversions</exec_depend>
 
   <export>
-    <build_type>cmake</build_type>
+    <build_type>catkin</build_type>
   </export>
 </package>
