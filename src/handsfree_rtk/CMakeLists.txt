@@ -15,3 +15,8 @@ catkin_package(
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )
+
+catkin_install_python(PROGRAMS
+  scripts/ros_driver_um98x.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
